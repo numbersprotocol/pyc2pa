@@ -1,0 +1,3 @@
+[submodule "codestream-parser"]
+	path = codestream-parser
+	url = https://github.com/content-authenticity-initiative/codestream-parser.git
