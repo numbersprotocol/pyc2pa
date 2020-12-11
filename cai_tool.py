@@ -1,16 +1,17 @@
 import sys
 import json
 
-# method to parse json
+# method for parsing json
 def parse_json(fname):
     with open(fname) as f:
         data = json.load(f)
 
-    return data
+    output = json.dumps(data)
 
-# method for converting label into hexadecimal
-# output in list format
-def get_hex(label, indent = 0, sec_indent = -1):
+    return output
+
+# method for converting label into hexadecimals
+def convert_to_hex(label, indent = 0, sec_indent = -1):
     if sec_indent == -1:
         sec_indent = indent
     result = []
@@ -18,39 +19,28 @@ def get_hex(label, indent = 0, sec_indent = -1):
         if i % 16 == 0:
             if i != 0:
                 indent = sec_indent
-        result.append(("%02x" % (ord(label[i]))))
+        result.append(("%2x" % (ord(label[i]))))
+
     return result
 
-# method for getting label hex
-def get_label_hex(label):
-
-    label_hex = get_hex(label)
+# format to appropriate label hex
+# label hex has 00 at the end signifying \0
+def format_label_hex(label):
+    label_hex = convert_to_hex(label)
     label_hex.append('00')
 
     return label_hex
 
-# calculating label size
-def calc_label_size(label):
+# method for calculating label_hex size 
+# important for LBox Description Calculations
+def calc_label_hex_size(label):
 
-    label_hex = get_label_hex(label)
-    label_size = len(label_hex)
+    size = len(format_label_hex(label))
 
-    return label_size
+    return size
 
-# t_box is either jumb or jumd
-# method for generating hex and size for t_box
-def superbox_description_tbox(sub_box):
-
-    if sub_box == "jumb":
-        hex = ['6A', '75', '6D', '62']
-        size = len(hex)
-    if sub_box == 'jumd':
-        hex = ['6A', '75', '6D', '64']
-        size = len(hex)
-    
-    return hex, size
-
-# type box method
+# description box has type attribute
+# method for setting hex for different types
 def type(label):
 
     if label == 'assertion':
@@ -71,372 +61,306 @@ def type(label):
 
     return type, size
 
-# toggle box method
+# method for setting toggle box method
 def toggle():
-
     type = ['03']
     size = len(type)
 
     return type, size
 
-# method for setting content box (json, uuid)
-def content_t_box(type):
-
-    if type == 'json':
-        hex = ['6A', '73', '6F', '6E']
-        size = len(hex)
-    if type == 'uuid':
-        hex = ['75', '75', '69', '64']
-        size = len(hex)
+# method for formatting l_box hex
+def format_hex(hex):
     
-    return hex, size
+    # remove 0x
+    return_hex = hex[2:]
 
-# calculating l_box for content box
-def content_l_box(type, data):
+    return return_hex
 
-    tbox_size = content_t_box(type)[1]
-    if type == 'json':
-        payload_hex = get_hex(data)
-        payload_size = len(payload_hex)
-    if type == 'uuid':
-        payload_hex = ['63', '61', '61', '73', '00', '11', '00', '10', '80', '00', '00', 'aa', '00', '38', '9b', '71']
-        payload_size = len(payload_hex)
-    total = 4 + tbox_size + payload_size
-    l_box = ['0x00', '0x00', '0x00']
-    l_box.append(hex(total))
+# method for generating l_box hex and size for content box
+def get_content_lbox(fname):
+    data = parse_json(fname)
 
-    return l_box, total
+    t_box_size = len(convert_to_hex('json'))
+    
+    payload_size = len(convert_to_hex(data))
 
-def json_content_l_box(type, fname):
+    total_size = 4 + t_box_size + payload_size
 
-    data = json.dumps(parse_json(fname))
-
-    tbox_size = content_t_box(type)[1]
-    if type == 'json':
-        payload_hex = get_hex(data)
-        payload_size = len(payload_hex)
-    if type == 'uuid':
-        payload_hex = ['63', '61', '73', '67', '00', '11', '00', '10', '80', '00', '00', 'aa', '00', '38', '9b', '71']
-        payload_size = len(payload_hex)
-    total = 4 + tbox_size + payload_size
     l_box = ['00', '00', '00']
-    l_box.append(hex(total))
+    l_box.append(format_hex(hex(total_size)))
 
-    return l_box, total
+    return l_box, total_size
 
-def four_json_content_l_box(type, fname_1, fname_2, fname_3, fname_4):
-
-    data_1 = json.dumps(parse_json(fname_1))
-    data_2 = json.dumps(parse_json(fname_2))
-    data_3 = json.dumps(parse_json(fname_3))
-    data_4 = json.dumps(parse_json(fname_4))
-
-
-    tbox_size = content_t_box(type)[1]
-    
-    payload_hex_1 = get_hex(data_1)
-    payload_size_1 = len(payload_hex_1)
-
-    payload_hex_2 = get_hex(data_2)
-    payload_size_2 = len(payload_hex_2)
-
-    payload_hex_3 = get_hex(data_3)
-    payload_size_3 = len(payload_hex_3)
-
-    payload_hex_4 = get_hex(data_4)
-    payload_size_4 = len(payload_hex_4)
-    
-    total = 4 + tbox_size + payload_size_1 + payload_size_2 + payload_size_3 + payload_size_4
-    l_box = ['00', '00', '00']
-    l_box.append(hex(total))
-
-    return l_box, total
-
-# method for l_box in description box
-def description_l_box(content_type, label, block):
-
-    t_box_size = superbox_description_tbox(content_type)[1]
+# method for generating l_box hex and size for description box
+def get_description_l_box(label, block):
+    t_box_size = len(convert_to_hex('jumd'))
     type_size = type(block)[1]
     toggle_size = toggle()[1]
-    label_size = calc_label_size(label)
+    label_size = calc_label_hex_size(label)
 
-    total = 4 + t_box_size + type_size + toggle_size + label_size
+    total_size = 4 + t_box_size + type_size + toggle_size + label_size
+    l_box = ['00', '00', '00']
+    l_box.append(format_hex(hex(total_size)))
+
+    return l_box, total_size
+
+# method for generating l_box hex and size for superbox
+def get_superbox_l_box(description_size, content_size):
+    t_box_size = len(convert_to_hex('jumb'))
+
+    total_size = 4 + t_box_size + description_size + content_size
+    l_box = ['00', '00', '00']
+    l_box.append(format_hex(hex(total_size)))
+
+    return l_box, total_size
+
+# method for calculating payload size
+def cai_store_payload_size(assertion, claim, signature):
+    total_size = assertion + claim + signature
+
+    return total_size
+
+# method for cai_store l_box hex and size for superbox
+def get_l_box_super_cai_store(description_size, payload_size):
+
+    t_box_size = len(convert_to_hex('jumb'))
+    total = 4 + t_box_size + description_size + payload_size
 
     l_box = ['00', '00', '00']
-    l_box.append(hex(total))
+    l_box.append(format_hex(hex(total)))
 
     return l_box, total
 
-# method for l_box in superbox
-def superbox_l_box(content_type, desc_size, content_size):
+# method for creating super_box (l_box & t_box)
+def create_super_box(l_box):
 
-    t_box_size = superbox_description_tbox(content_type)[1]
-    total = 4 + t_box_size + desc_size + content_size
-
-    l_box = ['00', '00', '00']
-    l_box.append(hex(total))
-
-    return l_box, total
-
-# method for getting payload size for cai_store
-def cai_store_payload_size(ass_size, claim_size, sign_size):
-
-    total = ass_size + claim_size + sign_size
-
-    return total
-
-# method for getting payload size for cai_store
-def cai_store_payload_size_four(ass_size_1, ass_size_2, ass_size_3, ass_size_4, claim_size, sign_size):
-
-    total = ass_size_1 + ass_size_2 + ass_size_3 + ass_size_4+ claim_size + sign_size
-
-    return total
-
-# method for cai_store superbox l_box
-def cai_store_superbox_l_box(content_type, desc_size, payload_size):
-
-    t_box_size = superbox_description_tbox(content_type)[1]
-    total = 4 + t_box_size + payload_size + desc_size
-
-    l_box = ['00', '00', '00']
-    l_box.append(hex(total))
-
-    return l_box, total
-
-# method for generating assertion, claim, and signature block
-def create_block(super_l_box, super_t_box, desc_l_box, desc_t_box, type, toggle, label, content_l_box, cont_t_box, fname):
-
-    data = json.dumps(parse_json(fname))
-
-    t_box_super = superbox_description_tbox(super_t_box)
-    t_box_desc = superbox_description_tbox(desc_t_box)
-    t_box_content = content_t_box(cont_t_box)
-
-    label_hex = get_label_hex(label)
-
-    if cont_t_box == 'json':
-        data_hex = get_hex(data)
-    if cont_t_box == 'uuid':
-        data_hex = ['63', '61', '61', '73', '00', '11', '00', '10', '80', '00', '00', 'aa', '00', '38', '9b', '71']
-
-    block = super_l_box + t_box_super[0] + desc_l_box + t_box_desc[0] + type + toggle + label_hex + content_l_box + t_box_content[0] + data_hex
+    t_box = convert_to_hex('jumb')
+    block = l_box + t_box
 
     return block
 
-def create_block_assertion(super_l_box, super_t_box, desc_l_box, desc_t_box, type, toggle, label, content_l_box, cont_t_box, ass_content):
+# method for creating description_box (l_box, t_box, type, toggle, label)
+def create_description_box(l_box, type_label, label):
 
-    t_box_super = superbox_description_tbox(super_t_box)
-    t_box_desc = superbox_description_tbox(desc_t_box)
-    t_box_content = content_t_box(cont_t_box)
+    t_box = convert_to_hex('jumd')
+    label_hex = format_label_hex(label)
+    type_box = type(type_label)[0]
 
-    label_hex = get_label_hex(label)
-
-    block = super_l_box + t_box_super[0] + desc_l_box + t_box_desc[0] + type + toggle + label_hex + content_l_box + t_box_content[0] + ass_content
-
-    return block
-
-def create_assertion_block(super_l_box, super_t_box, desc_l_box, desc_t_box, type, toggle, label, content_l_box, cont_t_box, fname_1, fname_2, fname_3, fname_4):
-
-    data_1 = json.dumps(parse_json(fname_1))
-    data_2 = json.dumps(parse_json(fname_2))
-    data_3 = json.dumps(parse_json(fname_3))
-    data_4 = json.dumps(parse_json(fname_4))
-
-
-    t_box_super = superbox_description_tbox(super_t_box)
-    t_box_desc = superbox_description_tbox(desc_t_box)
-    t_box_content = content_t_box(cont_t_box)
-
-    label_hex = get_label_hex(label)
-
-    data_hex_1 = get_hex(data_1)
-    data_hex_2 = get_hex(data_2)
-    data_hex_3 = get_hex(data_3)
-    data_hex_4 = get_hex(data_4)
-
-    block = super_l_box + t_box_super[0] + desc_l_box + t_box_desc[0] + type + toggle + label_hex + content_l_box + t_box_content[0] + data_hex_1 + data_hex_2 + data_hex_3 + data_hex_4 
+    block = l_box + t_box + type_box + toggle()[0] + label_hex
 
     return block
 
-# method for generating cai and store block
-def create_cai_store_block(super_l_box, super_t_box, desc_l_box, desc_t_box, type, toggle, label):
-    t_box_super = superbox_description_tbox(super_t_box)
-    t_box_desc = superbox_description_tbox(desc_t_box)
-    label_hex = get_label_hex(label)
-    block = super_l_box + t_box_super[0] + desc_l_box + t_box_desc[0] + type + toggle + label_hex
+# method for creating content_box (l_box, t_box, data)
+def create_content_box(l_box, fname):
+    data = parse_json(fname)
+    data_hex = convert_to_hex(data)
+
+    t_box = convert_to_hex('json')
+    block = l_box + t_box + data_hex
 
     return block
 
-# method for generating complete cai metadata injection
-def create_complete(cai_l_box, cai_block, store_block, assertion_block, claim_block, signature_block):
+# method for creating full JUMBF box (super + description + content)
+def make_block(super, description, content):
+
+    block = super + description + content
+
+    return block
+
+# method for create partial JUMBF blox (for cai, cai_store, assertion_store)
+def make_store_block(super, desciption):
+
+    block = super + desciption
+
+    return block
+
+# methof for creating block injections
+def create_injection_block(cai_block, store_block, assertion_store, assertion, claim, signature, size):
+    l_box = ['00']
+    total_size = 10 + size
+    total_size_hex = format_hex(hex(total_size))
+    l_box.append(total_size_hex)
+
+    header = ['FF', 'EB']
+    c_box = convert_to_hex('JP')
+    box_remain = ['00', '01', '00', '00', '00','01']
+
+    block = header + l_box + c_box + box_remain + cai_block + store_block + assertion_store + assertion + claim + signature
+
+    return block
+
+def run_assertion(number_assertions):
+
+    list = []
+    label = []
+
+    for i in range(number_assertions):
+        fname = raw_input('Assertion JSON: ')
+        label_name = raw_input('Assertion Label: ')
+
+        list.append(fname)
+        label.append(label_name)
+
+    return list, label
+
+def create_assertions(list, label):
+
+    assertion_blocks = []
+    super_l_box_list = []
+    total = 0
+
+    for i in list:
+        for j in label:
+            
+            # create content l_box & content block
+            content_lbox = get_content_lbox(i)
+            content_lbox_block = create_content_box(content_lbox[0], i)
+            
+            # create description 1_box & description block
+            description_lbox = get_description_l_box(j, 'assertion')
+            description_block = create_description_box(description_lbox[0], 'assertion', j)
+
+            # create superbox 1_box and superbox block
+            superbox_lbox = get_superbox_l_box(description_lbox[1], content_lbox[1])
+            superbox_block = create_super_box(superbox_lbox[0])
+
+            # create complete assertion box
+            block = make_block(superbox_block, description_block, content_lbox_block)
+            assertion_blocks.append(block)
+            super_l_box_list.append(superbox_lbox[1])
+
+    for i in super_l_box_list:
+        total = total + i
+
+    return assertion_blocks, total
+
+def run_claim():
+    
+    fname = raw_input("Claim JSON: ")
+
+    return fname
+
+def create_claim(fname):
+    # create content l_box & content block
+    content_lbox = get_content_lbox(fname)
+    content_lbox_block = create_content_box(content_lbox[0], fname)
+            
+    # create description 1_box & description block
+    description_lbox = get_description_l_box('cai.claim', 'claim')
+    description_block = create_description_box(description_lbox[0], 'claim', 'cai.claim')
+
+    # create superbox 1_box and superbox block
+    superbox_lbox = get_superbox_l_box(description_lbox[1], content_lbox[1])
+    superbox_block = create_super_box(superbox_lbox[0])
+
+    # create complete assertion box
+    block = make_block(superbox_block, description_block, content_lbox_block)
+
+    return block, superbox_lbox[1]
+
+def run_signature():
+    
+    fname = raw_input("Signature JSON: ")
+
+    return fname
+
+def create_signature(fname):
+    # create content l_box & content block
+    content_lbox = get_content_lbox(fname)
+    content_lbox_block = create_content_box(content_lbox[0], fname)
+            
+    # create description 1_box & description block
+    description_lbox = get_description_l_box('cai.signature', 'signature')
+    description_block = create_description_box(description_lbox[0], 'signature', 'cai.signature')
+
+    # create superbox 1_box and superbox block
+    superbox_lbox = get_superbox_l_box(description_lbox[1], content_lbox[1])
+    superbox_block = create_super_box(superbox_lbox[0])
+
+    # create complete assertion box
+    block = make_block(superbox_block, description_block, content_lbox_block)
+
+    return block, superbox_lbox[1]
+
+def run_store():
+    label = raw_input("Store label: ")
+
+    return label
+
+def create_store_block()
+
+def create_complete(cai_l_box, cai_block, store_block, assertion_block, assertions, claim_block, signature_block):
 
     l_box = ['00']
     size = 10 + cai_l_box
-    size_hex = hex(size)
+    size_hex = format_hex(hex(size))
     l_box.append(size_hex)
 
     header = ['FF', 'EB']
-    c_box = get_hex("JP")
+    c_box = convert_to_hex('JP')
     box_remain = ['00', '01', '00', '00', '00','01']
 
-    final_cai_block = header + l_box + c_box + box_remain + cai_block + store_block + assertion_block + claim_block + signature_block
+    final_cai_block = header + l_box + c_box + box_remain + cai_block + store_block + assertion_block + assertions + claim_block + signature_block
 
     return final_cai_block
 
-def create_complete_final(cai_l_box, cai_block, store_block, assertion_block, claim_block, signature_block,ass_block1, ass_block_2, ass_block_3, ass_block_4):
+def process():
+    number_assertions = raw_input('How many assertions? ')
+    number_assertions = int(number_assertions)
 
-    l_box = ['00']
-    size = 10 + cai_l_box
-    size_hex = hex(size)
-    l_box.append(size_hex)
+    if number_assertions > 0:
+        fname_list = run_assertion(number_assertions)
 
-    header = ['FF', 'EB']
-    c_box = get_hex("JP")
-    box_remain = ['00', '01', '00', '00', '00','01']
+        ass = create_assertions(fname_list[0], fname_list[1])
 
-    final_cai_block = header + l_box + c_box + box_remain + cai_block + store_block + assertion_block + ass_block1 + ass_block_2 + ass_block_3 + ass_block_4 + claim_block + signature_block
+        assertions = []
+        for i in ass[0]:
+            assertions = assertions + i
 
-    return final_cai_block
+        claim_fname = run_claim()
 
-def create_complete_4(cai_l_box, cai_block, store_block, assertion_block_1, assertion_block_2, assertion_block_3, assertion_block_4, claim_block, signature_block):
+        claim = create_claim(claim_fname)
 
-    l_box = ['00']
-    size = 10 + cai_l_box
-    size_hex = hex(size)
-    l_box.append(size_hex)
+        sign_fname = run_signature()
 
-    header = ['FF', 'EB']
-    c_box = get_hex("JP")
-    box_remain = ['00', '01', '00', '00', '00','01']
+        signature = create_signature(sign_fname)
 
-    final_cai_block = header + l_box + c_box + box_remain + cai_block + store_block + assertion_block_1 + assertion_block_2 + assertion_block_3 + assertion_block_4 + claim_block + signature_block
+        # create assertion block
+        ass_desc = get_description_l_box('cai.assertions', 'assertion')
+        ass_desc_block = create_description_box(ass_desc[0], 'assertion', 'cai.assertions')
+        print ass_desc_block
+        ass_super = get_superbox_l_box(ass_desc[1], ass[1])
+        ass_super_block = create_super_box(ass_super[0])
 
-    return final_cai_block
+        ass_block = make_store_block(ass_super_block, ass_desc_block)
 
-def create_json_injection(claim_data, assertion_data):
+        payload_size = cai_store_payload_size(ass[1], claim[1], signature[1])
 
-    # create assertion block
-    ass_content = json_content_l_box('json', assertion_data)
-    ass_desc = description_l_box('jumd', 'cai.assertions', 'assertion')
-    ass_super = superbox_l_box('jumb', ass_desc[1], ass_content[1])
-    # print ass_super
-    ass_block = create_block(ass_super[0], 'jumb', ass_desc[0], 'jumd', type('assertion')[0], toggle()[0], 'cai.assertions', ass_content[0], 'json',  assertion_data)
+        label = run_store()
+        store_desc = get_description_l_box(label, 'store')
+        store_desc_block = create_description_box(store_desc[0], 'store', label)
+        store_super = get_l_box_super_cai_store(store_desc[1], payload_size)
+        store_super_block = create_super_box(store_super[0])
+        store_block = make_store_block(store_super_block, store_desc_block)
 
-    # create claim block
-    claim_content = json_content_l_box('json', claim_data)
-    claim_desc = description_l_box('jumd', 'cai.claim', 'claim')
-    claim_super = superbox_l_box('jumb', claim_desc[1], claim_content[1])
-    # print claim_super
-    claim_block = create_block(claim_super[0], 'jumb', claim_desc[0], 'jumd', type('claim')[0], toggle()[0], 'cai.claim', claim_content[0], 'json',  claim_data)
+        cai_payload = store_super[1]
+        cai_desc = get_description_l_box('cai', 'cai')
+        cai_desc_block = create_description_box(cai_desc[0], 'cai', 'cai')
+        cai_super = get_l_box_super_cai_store(cai_desc[1], cai_payload)
+        cai_super_block = create_super_box(cai_super[0])
+        cai_block = make_store_block(cai_super_block, cai_desc_block)
 
+        injection = create_complete(cai_super[1], cai_block, store_block, ass_block, ass[0], claim[0], signature[0])
+        print injection
 
-    sig_content = json_content_l_box('uuid', assertion_data)
-    sig_desc = description_l_box('jumd', 'cai.signature', 'signature')
-    sig_super = superbox_l_box('jumb', sig_desc[1], sig_content[1])
-    # print sig_super
-    sig_block = create_block(sig_super[0], 'jumb', sig_desc[0], 'jumd', type('signature')[0], toggle()[0], 'cai.signature', sig_content[0], 'uuid', assertion_data)
+    else:
+        print "Not a valid number of assertions"
 
-    store_payload =  cai_store_payload_size(ass_super[1], claim_super[1], sig_super[1])
-    store_desc = description_l_box('jumd', 'cb.starling_1', 'store')
-    store_super = cai_store_superbox_l_box('jumb', store_desc[1], store_payload)
-    # print store_super
-    store_block = create_cai_store_block(store_super[0], 'jumb', store_desc[0], 'jumd', type('store')[0], toggle()[0], 'cb.starling_1')
-
-    cai_payload = store_super[1]
-    cai_desc = description_l_box('jumd', 'cai', 'cai')
-    cai_super = cai_store_superbox_l_box('jumb', cai_desc[1], cai_payload)
-    # print cai_super
-    cai_block = create_cai_store_block(cai_super[0], 'jumb', cai_desc[0], 'jumd', type('cai')[0], toggle()[0], 'cai')
-
-    return create_complete(cai_super[1], cai_block, store_block, ass_block, claim_block, sig_block)
-
-def create_four_json_injection(claim_data, assertion_data_1, assertion_data_2, assertion_data_3, assertion_data_4, signature_data):
     
-    # create assertion block (location.precise)
-    ass_content_1 = json_content_l_box('json', assertion_data_1)
-    ass_desc_1 = description_l_box('jumd', 'starling.location.precise', 'assertion')
-    ass_super_1 = superbox_l_box('jumb', ass_desc_1[1], ass_content_1[1])
-    # print ass_super
-    ass_block_1 = create_block(ass_super_1[0], 'jumb', ass_desc_1[0], 'jumd', type('assertion')[0], toggle()[0], 'starling.location.precise', ass_content_1[0], 'json',  assertion_data_1)
-
-    # create assertion block (device)
-    ass_content_2 = json_content_l_box('json', assertion_data_2)
-    ass_desc_2 = description_l_box('jumd', 'starling.device', 'assertion')
-    ass_super_2 = superbox_l_box('jumb', ass_desc_2[1], ass_content_2[1])
-    # print ass_super
-    ass_block_2 = create_block(ass_super_2[0], 'jumb', ass_desc_2[0], 'jumd', type('assertion')[0], toggle()[0], 'starling.device', ass_content_2[0], 'json',  assertion_data_2)
-
-    # create assertion block (sensor)
-    ass_content_3 = json_content_l_box('json', assertion_data_3)
-    ass_desc_3 = description_l_box('jumd', 'starling.sensor', 'assertion')
-    ass_super_3 = superbox_l_box('jumb', ass_desc_3[1], ass_content_3[1])
-    # print ass_super
-    ass_block_3 = create_block(ass_super_3[0], 'jumb', ass_desc_3[0], 'jumd', type('assertion')[0], toggle()[0], 'starling.sensor', ass_content_3[0], 'json',  assertion_data_3)
-    
-    # create assertion block (integrity)
-    ass_content_4 = json_content_l_box('json', assertion_data_4)
-    ass_desc_4 = description_l_box('jumd', 'starling.integrity', 'assertion')
-    ass_super_4 = superbox_l_box('jumb', ass_desc_4[1], ass_content_4[1])
-    # print ass_super
-    ass_block_4 = create_block(ass_super_4[0], 'jumb', ass_desc_4[0], 'jumd', type('assertion')[0], toggle()[0], 'starling.integrity', ass_content_4[0], 'json',  assertion_data_4)
-    
-    # create assertion block
-    ass_content = ass_block_1 + ass_block_2 + ass_block_3 + ass_block_4
-    ass_content_l_box = ['00', '00', '00', hex(len(ass_content))]
-    ass_desc = description_l_box('jumd', 'cai.assertions', 'assertion')
-    ass_super = superbox_l_box('jumb', ass_desc[1], len(ass_content))
-    ass_block = create_cai_store_block(ass_super[0], 'jumb', ass_desc[0], 'jumd', type('assertion')[0], toggle()[0], 'cai.assertions')
-    
-    # create claim block
-    claim_content = json_content_l_box('json', claim_data)
-    claim_desc = description_l_box('jumd', 'starling.claim', 'claim')
-    claim_super = superbox_l_box('jumb', claim_desc[1], claim_content[1])
-    # print claim_super
-    claim_block = create_block(claim_super[0], 'jumb', claim_desc[0], 'jumd', type('claim')[0], toggle()[0], 'starling.claim', claim_content[0], 'json',  claim_data)
-
-    sig_content = json_content_l_box('json', signature_data)
-    sig_desc = description_l_box('jumd', 'starling.signature', 'signature')
-    sig_super = superbox_l_box('jumb', sig_desc[1], sig_content[1])
-    # print sig_super
-    sig_block = create_block(sig_super[0], 'jumb', sig_desc[0], 'jumd', type('signature')[0], toggle()[0], 'starling.signature', sig_content[0], 'json', signature_data)
-
-    store_payload =  cai_store_payload_size(ass_super[1], claim_super[1], sig_super[1])
-    store_desc = description_l_box('jumd', 'cb.starling_1', 'store')
-    store_super = cai_store_superbox_l_box('jumb', store_desc[1], store_payload)
-    # print store_super
-    store_block = create_cai_store_block(store_super[0], 'jumb', store_desc[0], 'jumd', type('store')[0], toggle()[0], 'cb.starling_1')
-
-    cai_payload = store_super[1]
-    cai_desc = description_l_box('jumd', 'cai', 'cai')
-    cai_super = cai_store_superbox_l_box('jumb', cai_desc[1], cai_payload)
-    # print cai_super
-    cai_block = create_cai_store_block(cai_super[0], 'jumb', cai_desc[0], 'jumd', type('cai')[0], toggle()[0], 'cai')
-
-    return create_complete_final(cai_super[1], cai_block, store_block, ass_block, claim_block, sig_block, ass_block_1, ass_block_2, ass_block_3, ass_block_4)
 
 def main():
-
-    claim_data = sys.argv[1]
-    assertion_data_1 = sys.argv[2]
-    assertion_data_2 = sys.argv[3]
-    assertion_data_3 = sys.argv[4]
-    assertion_data_4 = sys.argv[5]
-    sig_data = sys.argv[6]
-
-
-    # print "###############################################################"
-    # print "# Staring CAI-Tool                                            #"
-    # print "###############################################################"
-
-    # currently only works with specified number of assertions
-    # need to change to make code more dynamic
-    result = create_four_json_injection(claim_data, assertion_data_1, assertion_data_2, assertion_data_3, assertion_data_4, sig_data)
-    print result
-    print len(result)
+    script = sys.argv[0]
+    process()
 
 if __name__ == "__main__":
-    main()
-
-
-
-
+    main()   
