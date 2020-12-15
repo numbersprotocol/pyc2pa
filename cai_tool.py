@@ -195,8 +195,8 @@ def run_assertion(number_assertions):
     label = []
 
     for i in range(number_assertions):
-        fname = raw_input('Assertion JSON: ')
-        label_name = raw_input('Assertion Label: ')
+        fname = input('Assertion JSON: ')
+        label_name = input('Assertion Label: ')
 
         list.append(fname)
         label.append(label_name)
@@ -236,7 +236,7 @@ def create_assertions(list, label):
 
 def run_claim():
     
-    fname = raw_input("Claim JSON: ")
+    fname = input("Claim JSON: ")
 
     return fname
 
@@ -260,7 +260,7 @@ def create_claim(fname):
 
 def run_signature():
     
-    fname = raw_input("Signature JSON: ")
+    fname = input("Signature JSON: ")
 
     return fname
 
@@ -283,11 +283,9 @@ def create_signature(fname):
     return block, superbox_lbox[1]
 
 def run_store():
-    label = raw_input("Store label: ")
+    label = input("Store label: ")
 
     return label
-
-def create_store_block()
 
 def create_complete(cai_l_box, cai_block, store_block, assertion_block, assertions, claim_block, signature_block):
 
@@ -305,7 +303,7 @@ def create_complete(cai_l_box, cai_block, store_block, assertion_block, assertio
     return final_cai_block
 
 def process():
-    number_assertions = raw_input('How many assertions? ')
+    number_assertions = input('How many assertions? ')
     number_assertions = int(number_assertions)
 
     if number_assertions > 0:
@@ -328,7 +326,6 @@ def process():
         # create assertion block
         ass_desc = get_description_l_box('cai.assertions', 'assertion')
         ass_desc_block = create_description_box(ass_desc[0], 'assertion', 'cai.assertions')
-        print ass_desc_block
         ass_super = get_superbox_l_box(ass_desc[1], ass[1])
         ass_super_block = create_super_box(ass_super[0])
 
@@ -351,10 +348,10 @@ def process():
         cai_block = make_store_block(cai_super_block, cai_desc_block)
 
         injection = create_complete(cai_super[1], cai_block, store_block, ass_block, ass[0], claim[0], signature[0])
-        print injection
+        print(injection)
 
     else:
-        print "Not a valid number of assertions"
+        print("Not a valid number of assertions")
 
     
 
