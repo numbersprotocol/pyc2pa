@@ -226,8 +226,8 @@ def create_assertions(list, label):
 
             # create complete assertion box
             block = make_block(superbox_block, description_block, content_lbox_block)
-            assertion_blocks.append(block)
-            super_l_box_list.append(superbox_lbox[1])
+        assertion_blocks.append(block)
+        super_l_box_list.append(superbox_lbox[1])
 
     for i in super_l_box_list:
         total = total + i
@@ -358,6 +358,7 @@ def process():
 def main():
     script = sys.argv[0]
     process()
+    
 
 if __name__ == "__main__":
     main()   
