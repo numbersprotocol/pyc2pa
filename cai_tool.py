@@ -347,7 +347,7 @@ def process():
         cai_super_block = create_super_box(cai_super[0])
         cai_block = make_store_block(cai_super_block, cai_desc_block)
 
-        injection = create_complete(cai_super[1], cai_block, store_block, ass_block, ass[0], claim[0], signature[0])
+        injection = create_complete(cai_super[1], cai_block, store_block, ass_block, assertions, claim[0], signature[0])
         print(injection)
 
     else:
