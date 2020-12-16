@@ -91,6 +91,25 @@ def get_content_lbox(fname):
 
     return l_box, total_size
 
+# method for generating l_box for size for uuid content
+def get_uuid_content_box():
+
+    t_box_size = len(convert_to_hex('uuid'))
+    
+    data_hex = ['63', '61', '61', '73', '00', '11', '00', '10', '80', '00', '00', 'aa', '00', '38', '9b', '71']
+    data_hex_size = len(data_hex)
+
+    # for now use placeholder signature data 
+    payload_data = ['73', '69', '67', '6e', '61', '74', '75', '72', '65', '20', '70', '6c', '61', '63', '65', '68', '6f', '6c', '64', '65', '72', '3a', '63', '62', '2e', '73', '74', '61', '72', '6c', '69', '6e', '67', '5f', '31', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20']
+    payload_size = len(payload_data)
+
+    total_size = 4 + t_box_size + data_hex_size + payload_size
+
+    l_box = ['00', '00', '00']
+    l_box.append(format_hex(hex(total_size)))
+
+    return l_box, total_size
+
 # method for generating l_box hex and size for description box
 def get_description_l_box(label, block):
     t_box_size = len(convert_to_hex('jumd'))
@@ -160,6 +179,17 @@ def create_content_box(l_box, fname):
 
     return block
 
+# method for creating uuid content_box
+def create_uuid_box(l_box):
+
+    t_box = convert_to_hex('uuid')
+    data_hex = ['63', '61', '61', '73', '00', '11', '00', '10', '80', '00', '00', 'aa', '00', '38', '9b', '71']
+    payload_data = ['73', '69', '67', '6e', '61', '74', '75', '72', '65', '20', '70', '6c', '61', '63', '65', '68', '6f', '6c', '64', '65', '72', '3a', '63', '62', '2e', '73', '74', '61', '72', '6c', '69', '6e', '67', '5f', '31', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20']
+
+    block = l_box + t_box + data_hex + payload_data
+
+    return block
+
 # method for creating full JUMBF box (super + description + content)
 def make_block(super, description, content):
 
@@ -215,17 +245,21 @@ def create_assertions(list, label):
             # create content l_box & content block
             content_lbox = get_content_lbox(i)
             content_lbox_block = create_content_box(content_lbox[0], i)
+            print(i)
+            print(content_lbox_block)
             
             # create description 1_box & description block
             description_lbox = get_description_l_box(j, 'assertion')
             description_block = create_description_box(description_lbox[0], 'assertion', j)
+            print(j)
+            print(description_block)
 
-            # create superbox 1_box and superbox block
-            superbox_lbox = get_superbox_l_box(description_lbox[1], content_lbox[1])
-            superbox_block = create_super_box(superbox_lbox[0])
+        # create superbox 1_box and superbox block
+        superbox_lbox = get_superbox_l_box(description_lbox[1], content_lbox[1])
+        superbox_block = create_super_box(superbox_lbox[0])
 
-            # create complete assertion box
-            block = make_block(superbox_block, description_block, content_lbox_block)
+        # create complete assertion box
+        block = make_block(superbox_block, description_block, content_lbox_block)
         assertion_blocks.append(block)
         super_l_box_list.append(superbox_lbox[1])
         print(super_l_box_list)
@@ -259,16 +293,10 @@ def create_claim(fname):
 
     return block, superbox_lbox[1]
 
-def run_signature():
-    
-    fname = input("Signature JSON: ")
-
-    return fname
-
-def create_signature(fname):
+def create_signature():
     # create content l_box & content block
-    content_lbox = get_content_lbox(fname)
-    content_lbox_block = create_content_box(content_lbox[0], fname)
+    content_lbox = get_uuid_content_box()
+    content_lbox_block = create_uuid_box(content_lbox[0])
             
     # create description 1_box & description block
     description_lbox = get_description_l_box('cai.signature', 'signature')
@@ -318,15 +346,15 @@ def process():
         for i in ass[0]:
             assertions = assertions + i
 
-        print(assertions)
+        print('assertions', assertions)
 
         claim_fname = run_claim()
 
         claim = create_claim(claim_fname)
+        print('claim', claim)
 
-        sign_fname = run_signature()
-
-        signature = create_signature(sign_fname)
+        signature = create_signature()
+        print('signature', signature)
 
         # create assertion block
         ass_desc = get_description_l_box('cai.assertions', 'assertion')
