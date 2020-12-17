@@ -1,5 +1,22 @@
-import sys
+import hashlib
 import json
+import sys
+
+import multibase
+import multihash
+
+
+def encode_hashlink(binary_content, codec='base58btc', to_hexstr=False):
+    mh = multihash.Multihash(multihash.Func.sha2_256,
+                             hashlib.sha256(binary_content).digest())
+    mb = multibase.encode(codec, mh.encode())
+    if to_hexstr:
+        # return hex string
+        return mb.hex()
+    else:
+        # return bytes
+        return mb
+
 
 # method for parsing json
 def parse_json(fname):
