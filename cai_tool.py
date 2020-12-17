@@ -86,8 +86,7 @@ def get_content_lbox(fname):
 
     total_size = 4 + t_box_size + payload_size
 
-    l_box = ['00', '00', '00']
-    l_box.append(format_hex(hex(total_size)))
+    l_box = format_l_box(total_size)
 
     return l_box, total_size
 
@@ -105,8 +104,7 @@ def get_uuid_content_box():
 
     total_size = 4 + t_box_size + data_hex_size + payload_size
 
-    l_box = ['00', '00', '00']
-    l_box.append(format_hex(hex(total_size)))
+    l_box = format_l_box(total_size)
 
     return l_box, total_size
 
@@ -118,8 +116,7 @@ def get_description_l_box(label, block):
     label_size = calc_label_hex_size(label)
 
     total_size = 4 + t_box_size + type_size + toggle_size + label_size
-    l_box = ['00', '00', '00']
-    l_box.append(format_hex(hex(total_size)))
+    l_box = format_l_box(total_size)
 
     return l_box, total_size
 
@@ -128,8 +125,7 @@ def get_superbox_l_box(description_size, content_size):
     t_box_size = len(convert_to_hex('jumb'))
 
     total_size = 4 + t_box_size + description_size + content_size
-    l_box = ['00', '00', '00']
-    l_box.append(format_hex(hex(total_size)))
+    l_box = format_l_box(total_size)
 
     return l_box, total_size
 
@@ -145,8 +141,7 @@ def get_l_box_super_cai_store(description_size, payload_size):
     t_box_size = len(convert_to_hex('jumb'))
     total = 4 + t_box_size + description_size + payload_size
 
-    l_box = ['00', '00', '00']
-    l_box.append(format_hex(hex(total)))
+    l_box = format_l_box(total)
 
     return l_box, total
 
@@ -324,10 +319,8 @@ def run_store():
 
 def create_complete(cai_l_box, cai_block, store_block, assertion_block, assertions, claim_block, signature_block):
 
-    l_box = ['00']
     size = 10 + cai_l_box
-    size_hex = format_hex(hex(size))
-    l_box.append(size_hex)
+    l_box = format_header_l_box(size)
 
     header = ['FF', 'EB']
     c_box = convert_to_hex('JP')
@@ -336,6 +329,39 @@ def create_complete(cai_l_box, cai_block, store_block, assertion_block, assertio
     final_cai_block = header + l_box + c_box + box_remain + cai_block + store_block + assertion_block + assertions + claim_block + signature_block
 
     return final_cai_block
+
+def format_l_box(total_size):
+
+    size_hex = format_hex(hex(total_size))
+
+    if len(size_hex) == 2:
+        l_box = ['00', '00', '00', size_hex]
+    if len(size_hex) == 3:
+        l_box = ['00', '00', '0' + size_hex[0], size_hex[1:]]
+    if len(size_hex) == 4:
+        l_box = ['00', '00', size_hex[0:2], size_hex[2:]]
+    if len(size_hex) == 5:
+        l_box = ['00', '0' + size_hex[0], size_hex[1:3], size_hex[3:]]
+    if len(size_hex) == 6:
+        l_box = ['00', size_hex[0:2], size_hex[2:4], size_hex[4:]]
+    if len(size_hex) == 7:
+        l_box = ['0' + size_hex[0], size_hex[1:3], size_hex[3:5], size_hex[5:]]
+    if len(size_hex) == 8:
+        l_box = [size_hex[0:2], size_hex[2:4], size_hex[4:6], size_hex[6:]]
+
+    return l_box
+
+def format_header_l_box(total_size):
+
+    size_hex = format_hex(hex(total_size))
+    if len(size_hex) == 2:
+        l_box = ['00', size_hex]
+    if len(size_hex) == 3:
+        l_box = ['0' + size_hex[0], size_hex[1:]]
+    if len(size_hex) == 4:
+        l_box = [size_hex[0:2], size_hex[2:]]
+
+    return l_box
 
 def process():
     number_assertions = input('How many assertions? ')
@@ -366,7 +392,8 @@ def process():
 
         ass_block = make_store_block(ass_super_block, ass_desc_block)
 
-        payload_size = cai_store_payload_size(ass[1], claim[1], signature[1])
+        payload_size = cai_store_payload_size(ass_super[1], claim[1], signature[1])
+        print(payload_size)
 
         label = run_store()
         store_desc = get_description_l_box(label, 'store')
@@ -374,6 +401,7 @@ def process():
         store_super = get_l_box_super_cai_store(store_desc[1], payload_size)
         store_super_block = create_super_box(store_super[0])
         store_block = make_store_block(store_super_block, store_desc_block)
+        print('store', store_block)
 
         cai_payload = store_super[1]
         cai_desc = get_description_l_box('cai', 'cai')
@@ -381,6 +409,7 @@ def process():
         cai_super = get_l_box_super_cai_store(cai_desc[1], cai_payload)
         cai_super_block = create_super_box(cai_super[0])
         cai_block = make_store_block(cai_super_block, cai_desc_block)
+        print('cai', cai_block)
 
         injection = create_complete(cai_super[1], cai_block, store_block, ass_block, assertions, claim[0], signature[0])
         print(injection)
