@@ -1,0 +1,14 @@
+{
+    "starling:SensorAccelerometer": "SensorData(accuracy=3.0, value=[-2.2584498, 5.544669, 7.7695217])",
+    "starling:SensorAccelerometerUncalibrated": "SensorData(accuracy=3.0, value=[-1.820267, 5.5468745, 7.781287, 0.0, 0.0, 0.0])",
+    "starling:SensorGameRotationVector": "SensorData(accuracy=3.0, value=[0.28894028, 0.089926116, -0.077565834, 0.94995135])",
+    "starling:SensorGeomagneticRotationVector": "SensorData(accuracy=3.0, value=[0.13018766, 0.28469607, 0.67535406, 0.66776913, 0.0])",
+    "starling:SensorGravity": "SensorData(accuracy=NO_UPDATE_RECEIVED_DURING_SNAP, value=[-2.1173487, 5.2436786, 8.011802])",
+    "starling:SensorGyroscope": "SensorData(accuracy=3.0, value=[0.0090546375, 0.0026631376, 0.011718297])",
+    "starling:SensorGyroscopeUncalibrated": "SensorData(accuracy=3.0, value=[-0.007457021, 0.004261021, -0.0069242665, 0.0, 0.0, 0.0])",
+    "starling:SensorLight": "SensorData(accuracy=3.0, value=[477.0, 0.0, 0.0])",
+    "starling:SensorLinearAcceleration": "SensorData(accuracy=NO_UPDATE_RECEIVED_DURING_SNAP, value=[0.19492735, 0.059680037, 0.20064202])",
+    "starling:SensorMagneticField": "SensorData(accuracy=NO_UPDATE_RECEIVED_DURING_SNAP, value=[106.72393, -18.183104, -12.878148])",
+    "starling:SensorMagneticFieldUncalibrated": "SensorData(accuracy=3.0, value=[105.09807, 27.845383, -12.322319, 9.477424E-38, 46.511898, 0.20629947])",
+    "starling:SensorRotationVector": "SensorData(accuracy=3.0, value=[0.14844818, 0.26368022, 0.59541535, 0.7442592, 0.0])"
+}

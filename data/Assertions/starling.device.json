@@ -1,0 +1,16 @@
+{
+    "android:AndroidIdHash": "8b46aab82c3867c7bda32682b1534178d7fce95dce749aa20ccc7d83708ddb7a",
+    "android:BuildId": "PQ2A.190205.003 release-keys",
+    "android:BuildTags": "release-keys",
+    "android:BuildTime": 1583266055000,
+    "android:BuildTimestamp": "2020-04-12T04:33:00Z",
+    "android:BuildType": "user",
+    "android:DeviceBoard": "sdm845",
+    "android:DeviceBrand": "htc",
+    "android:DeviceName": "htc_exodugl",
+    "android:EndProductName": "EXODUS 1",
+    "android:Fingerprint": "htc/exodugl_00709/htc_exodugl:9/PQ2A.190205.003/1109191.2:user/release-keys",
+    "android:Hardware": "htc_exo",
+    "android:Manufacturer": "HTC",
+    "android:OverallProductName": "exodugl_00709"	
+}
