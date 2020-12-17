@@ -372,8 +372,6 @@ def process():
 
         ass = create_assertions(fname_list[0], fname_list[1])
 
-        print(ass)
-
         assertions = []
         for i in ass[0]:
             assertions = assertions + i
@@ -393,7 +391,6 @@ def process():
         ass_block = make_store_block(ass_super_block, ass_desc_block)
 
         payload_size = cai_store_payload_size(ass_super[1], claim[1], signature[1])
-        print(payload_size)
 
         label = run_store()
         store_desc = get_description_l_box(label, 'store')
@@ -401,7 +398,6 @@ def process():
         store_super = get_l_box_super_cai_store(store_desc[1], payload_size)
         store_super_block = create_super_box(store_super[0])
         store_block = make_store_block(store_super_block, store_desc_block)
-        print('store', store_block)
 
         cai_payload = store_super[1]
         cai_desc = get_description_l_box('cai', 'cai')
@@ -409,7 +405,6 @@ def process():
         cai_super = get_l_box_super_cai_store(cai_desc[1], cai_payload)
         cai_super_block = create_super_box(cai_super[0])
         cai_block = make_store_block(cai_super_block, cai_desc_block)
-        print('cai', cai_block)
 
         injection = create_complete(cai_super[1], cai_block, store_block, ass_block, assertions, claim[0], signature[0])
         print(injection)
