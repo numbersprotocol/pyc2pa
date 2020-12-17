@@ -239,30 +239,36 @@ def create_assertions(list, label):
     super_l_box_list = []
     total = 0
 
+    content_list = []
+    desc_list = []
+
+    content_l_list = []
+    desc_l_list = []
+
     for i in list:
-        for j in label:
-            
-            # create content l_box & content block
-            content_lbox = get_content_lbox(i)
-            content_lbox_block = create_content_box(content_lbox[0], i)
-            print(i)
-            print(content_lbox_block)
-            
-            # create description 1_box & description block
-            description_lbox = get_description_l_box(j, 'assertion')
-            description_block = create_description_box(description_lbox[0], 'assertion', j)
-            print(j)
-            print(description_block)
+        # create content l_box & content block
+        content_lbox = get_content_lbox(i)
+        content_lbox_block = create_content_box(content_lbox[0], i)
+        content_l_list.append(content_lbox)
+        content_list.append(content_lbox_block)
 
-        # create superbox 1_box and superbox block
-        superbox_lbox = get_superbox_l_box(description_lbox[1], content_lbox[1])
-        superbox_block = create_super_box(superbox_lbox[0])
+    for j in label:
+        # create description 1_box & description block
+        description_lbox = get_description_l_box(j, 'assertion')
+        description_block = create_description_box(description_lbox[0], 'assertion', j)
+        desc_l_list.append(description_lbox)
+        desc_list.append(description_block)
 
+    for x in range(len(content_l_list)):
+            # create superbox 1_box and superbox block
+            superbox_lbox = get_superbox_l_box(desc_l_list[x][1], content_l_list[x][1])
+            superbox_block = create_super_box(superbox_lbox[0])
+            super_l_box_list.append(superbox_lbox[1])
+
+    for a in range(len(content_list)):
         # create complete assertion box
-        block = make_block(superbox_block, description_block, content_lbox_block)
+        block = make_block(superbox_block, desc_list[a], content_list[a])
         assertion_blocks.append(block)
-        super_l_box_list.append(superbox_lbox[1])
-        print(super_l_box_list)
 
     for i in super_l_box_list:
         total = total + i
@@ -346,15 +352,11 @@ def process():
         for i in ass[0]:
             assertions = assertions + i
 
-        print('assertions', assertions)
-
         claim_fname = run_claim()
 
         claim = create_claim(claim_fname)
-        print('claim', claim)
 
         signature = create_signature()
-        print('signature', signature)
 
         # create assertion block
         ass_desc = get_description_l_box('cai.assertions', 'assertion')
@@ -363,7 +365,6 @@ def process():
         ass_super_block = create_super_box(ass_super[0])
 
         ass_block = make_store_block(ass_super_block, ass_desc_block)
-        print('ass_block', ass_block)
 
         payload_size = cai_store_payload_size(ass[1], claim[1], signature[1])
 
@@ -373,7 +374,6 @@ def process():
         store_super = get_l_box_super_cai_store(store_desc[1], payload_size)
         store_super_block = create_super_box(store_super[0])
         store_block = make_store_block(store_super_block, store_desc_block)
-        print('store', store_block)
 
         cai_payload = store_super[1]
         cai_desc = get_description_l_box('cai', 'cai')
@@ -381,7 +381,6 @@ def process():
         cai_super = get_l_box_super_cai_store(cai_desc[1], cai_payload)
         cai_super_block = create_super_box(cai_super[0])
         cai_block = make_store_block(cai_super_block, cai_desc_block)
-        print('cai', cai_block)
 
         injection = create_complete(cai_super[1], cai_block, store_block, ass_block, assertions, claim[0], signature[0])
         print(injection)
