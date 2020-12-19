@@ -18,8 +18,9 @@ def encode_hashlink(binary_content, codec='base58btc', to_hexstr=False):
         return mb
 
 
-# method for parsing json
 def parse_json(fname):
+    '''Parse json
+    '''
     with open(fname) as f:
         data = json.load(f)
 
@@ -27,8 +28,10 @@ def parse_json(fname):
 
     return output
 
-# method for converting label into hexadecimals
+
 def convert_to_hex(label, indent = 0, sec_indent = -1):
+    '''Convert label into hexadecimals
+    '''
     if sec_indent == -1:
         sec_indent = indent
     result = []
@@ -40,26 +43,28 @@ def convert_to_hex(label, indent = 0, sec_indent = -1):
 
     return result
 
-# format to appropriate label hex
-# label hex has 00 at the end signifying \0
+
 def format_label_hex(label):
+    '''Format to appropriate label hex
+    Label hex has 00 at the end signifying \0
+    '''
     label_hex = convert_to_hex(label)
     label_hex.append('00')
-
     return label_hex
 
-# method for calculating label_hex size 
-# important for LBox Description Calculations
+
 def calc_label_hex_size(label):
-
+    '''Calculate label_hex size
+    Important for LBox Description Calculations
+    '''
     size = len(format_label_hex(label))
-
     return size
 
-# description box has type attribute
-# method for setting hex for different types
-def type(label):
 
+def type(label):
+    '''Setting hex for different types
+    Description box has type attribute
+    '''
     if label == 'assertion':
         type = ['6A', '73', '6F', '6E', '00', '11', '00', '10', '80', '00', '00', 'aa', '00', '38', '9b', '71']
         size = len(type)
@@ -81,23 +86,28 @@ def type(label):
 
     return type, size
 
-# method for setting toggle box method
+
 def toggle():
+    '''Set toggle box method
+    '''
     type = ['03']
     size = len(type)
-
     return type, size
 
-# method for formatting l_box hex
+
 def format_hex(hex):
-    
+    '''Format l_box hex
+    '''
     # remove 0x
     return_hex = hex[2:]
-
     return return_hex
 
-# method for generating l_box hex and size for content box
+
 def get_content_lbox(fname):
+    '''Generate l_box hex and size for content box
+
+    @return: (LBox, box size)
+    '''
     data = parse_json(fname)
 
     t_box_size = len(convert_to_hex('json'))
@@ -110,9 +120,10 @@ def get_content_lbox(fname):
 
     return l_box, total_size
 
-# method for generating l_box for size for uuid content
-def get_uuid_content_box():
 
+def get_uuid_content_box():
+    '''Generate l_box for size for uuid content
+    '''
     t_box_size = len(convert_to_hex('uuid'))
     
     data_hex = ['63', '61', '73', '67', '00', '11', '00', '10', '80', '00', '00', 'aa', '00', '38', '9b', '71']
@@ -128,8 +139,10 @@ def get_uuid_content_box():
 
     return l_box, total_size
 
-# method for generating l_box hex and size for description box
+
 def get_description_l_box(label, block):
+    '''Generate l_box hex and size for description box
+    '''
     t_box_size = len(convert_to_hex('jumd'))
     type_size = type(block)[1]
     toggle_size = toggle()[1]
@@ -140,8 +153,10 @@ def get_description_l_box(label, block):
 
     return l_box, total_size
 
-# method for generating l_box hex and size for superbox
+
 def get_superbox_l_box(description_size, content_size):
+    '''Generate l_box hex and size for superbox
+    '''
     t_box_size = len(convert_to_hex('jumb'))
 
     total_size = 4 + t_box_size + description_size + content_size
@@ -149,15 +164,17 @@ def get_superbox_l_box(description_size, content_size):
 
     return l_box, total_size
 
-# method for calculating payload size
-def cai_store_payload_size(assertion, claim, signature):
-    total_size = assertion + claim + signature
 
+def cai_store_payload_size(assertion, claim, signature):
+    '''Calculate payload size
+    '''
+    total_size = assertion + claim + signature
     return total_size
 
-# method for cai_store l_box hex and size for superbox
-def get_l_box_super_cai_store(description_size, payload_size):
 
+def get_l_box_super_cai_store(description_size, payload_size):
+    '''Create cai_store l_box hex and size for superbox
+    '''
     t_box_size = len(convert_to_hex('jumb'))
     total = 4 + t_box_size + description_size + payload_size
 
@@ -165,17 +182,18 @@ def get_l_box_super_cai_store(description_size, payload_size):
 
     return l_box, total
 
-# method for creating super_box (l_box & t_box)
-def create_super_box(l_box):
 
+def create_super_box(l_box):
+    '''Create super_box (l_box & t_box)
+    '''
     t_box = convert_to_hex('jumb')
     block = l_box + t_box
-
     return block
 
-# method for creating description_box (l_box, t_box, type, toggle, label)
-def create_description_box(l_box, type_label, label):
 
+def create_description_box(l_box, type_label, label):
+    '''Create description_box (l_box, t_box, type, toggle, label)
+    '''
     t_box = convert_to_hex('jumd')
     label_hex = format_label_hex(label)
     type_box = type(type_label)[0]
@@ -184,8 +202,10 @@ def create_description_box(l_box, type_label, label):
 
     return block
 
-# method for creating content_box (l_box, t_box, data)
+
 def create_content_box(l_box, fname):
+    ''' Create content_box (l_box, t_box, data)
+    '''
     data = parse_json(fname)
     data_hex = convert_to_hex(data)
 
@@ -194,9 +214,10 @@ def create_content_box(l_box, fname):
 
     return block
 
-# method for creating uuid content_box
-def create_uuid_box(l_box):
 
+def create_uuid_box(l_box):
+    '''Create uuid content_box
+    '''
     t_box = convert_to_hex('uuid')
     data_hex = ['63', '61', '73', '67', '00', '11', '00', '10', '80', '00', '00', 'aa', '00', '38', '9b', '71']
     payload_data = ['73', '69', '67', '6e', '61', '74', '75', '72', '65', '20', '70', '6c', '61', '63', '65', '68', '6f', '6c', '64', '65', '72', '3a', '63', '62', '2e', '73', '74', '61', '72', '6c', '69', '6e', '67', '5f', '31', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20']
@@ -205,22 +226,24 @@ def create_uuid_box(l_box):
 
     return block
 
-# method for creating full JUMBF box (super + description + content)
+
 def make_block(super, description, content):
-
+    '''Create full JUMBF box (super + description + content)
+    '''
     block = super + description + content
-
     return block
 
-# method for create partial JUMBF blox (for cai, cai_store, assertion_store)
+
 def make_store_block(super, desciption):
-
+    '''Create partial JUMBF blox (for cai, cai_store, assertion_store)
+    '''
     block = super + desciption
-
     return block
 
-# methof for creating block injections
+
 def create_injection_block(cai_block, store_block, assertion_store, assertion, claim, signature, size):
+    '''Create block injections
+    '''
     l_box = ['00']
     total_size = 10 + size
     total_size_hex = format_hex(hex(total_size))
@@ -234,8 +257,8 @@ def create_injection_block(cai_block, store_block, assertion_store, assertion, c
 
     return block
 
-def run_assertion(number_assertions):
 
+def run_assertion(number_assertions):
     list = []
     label = []
 
@@ -248,8 +271,8 @@ def run_assertion(number_assertions):
 
     return list, label
 
-def create_assertions(list, label):
 
+def create_assertions(list, label):
     assertion_blocks = []
     super_l_box_list = []
     superbox_block_list = []
@@ -292,17 +315,17 @@ def create_assertions(list, label):
 
     return assertion_blocks, total
 
-def run_claim():
-    
-    fname = input("Claim JSON: ")
 
+def run_claim():
+    fname = input("Claim JSON: ")
     return fname
+
 
 def create_claim(fname):
     # create content l_box & content block
     content_lbox = get_content_lbox(fname)
     content_lbox_block = create_content_box(content_lbox[0], fname)
-            
+
     # create description 1_box & description block
     description_lbox = get_description_l_box('cai.claim', 'claim')
     description_block = create_description_box(description_lbox[0], 'claim', 'cai.claim')
@@ -316,11 +339,12 @@ def create_claim(fname):
 
     return block, superbox_lbox[1]
 
+
 def create_signature():
     # create content l_box & content block
     content_lbox = get_uuid_content_box()
     content_lbox_block = create_uuid_box(content_lbox[0])
-            
+
     # create description 1_box & description block
     description_lbox = get_description_l_box('cai.signature', 'signature')
     description_block = create_description_box(description_lbox[0], 'signature', 'cai.signature')
@@ -334,13 +358,13 @@ def create_signature():
 
     return block, superbox_lbox[1]
 
+
 def run_store():
     label = input("Store label: ")
-
     return label
 
-def create_complete(cai_l_box, cai_block, store_block, assertion_block, assertions, claim_block, signature_block):
 
+def create_complete(cai_l_box, cai_block, store_block, assertion_block, assertions, claim_block, signature_block):
     size = 10 + cai_l_box
     l_box = format_header_l_box(size)
 
@@ -352,8 +376,14 @@ def create_complete(cai_l_box, cai_block, store_block, assertion_block, assertio
 
     return final_cai_block
 
-def format_l_box(total_size):
 
+def format_l_box(total_size):
+    '''Create a LBox.
+    Meaning: Box length (LBox + TBox + Payload)
+    Size: 4 bytes
+
+    @return: a list of strings, every 2-char string shows a byte in Hex.
+    '''
     size_hex = format_hex(hex(total_size))
 
     if len(size_hex) == 2:
@@ -373,8 +403,8 @@ def format_l_box(total_size):
 
     return l_box
 
-def format_header_l_box(total_size):
 
+def format_header_l_box(total_size):
     size_hex = format_hex(hex(total_size))
     if len(size_hex) == 2:
         l_box = ['00', size_hex]
@@ -384,6 +414,7 @@ def format_header_l_box(total_size):
         l_box = [size_hex[0:2], size_hex[2:]]
 
     return l_box
+
 
 def process():
     number_assertions = input('How many assertions? ')
@@ -435,12 +466,11 @@ def process():
     else:
         print("Not a valid number of assertions")
 
-    
 
 def main():
     script = sys.argv[0]
     process()
-    
+
 
 if __name__ == "__main__":
     main()   
