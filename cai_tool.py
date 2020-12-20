@@ -44,7 +44,7 @@ def calc_label_hex_size(label):
 def type(label):
 
     if label == 'assertion':
-        type = ['63', '61', '61', '73', '00', '11', '00', '10', '80', '00', '00', 'aa', '00', '38', '9b', '71']
+        type = ['6A', '73', '6F', '6E', '00', '11', '00', '10', '80', '00', '00', 'aa', '00', '38', '9b', '71']
         size = len(type)
     if label == 'claim':
         type = ['63', '61', '63', '6c', '00', '11', '00', '10', '80', '00', '00', 'aa', '00', '38', '9b', '71']
@@ -95,7 +95,7 @@ def get_uuid_content_box():
 
     t_box_size = len(convert_to_hex('uuid'))
     
-    data_hex = ['63', '61', '61', '73', '00', '11', '00', '10', '80', '00', '00', 'aa', '00', '38', '9b', '71']
+    data_hex = ['63', '61', '73', '67', '00', '11', '00', '10', '80', '00', '00', 'aa', '00', '38', '9b', '71']
     data_hex_size = len(data_hex)
 
     # for now use placeholder signature data 
@@ -178,7 +178,7 @@ def create_content_box(l_box, fname):
 def create_uuid_box(l_box):
 
     t_box = convert_to_hex('uuid')
-    data_hex = ['63', '61', '61', '73', '00', '11', '00', '10', '80', '00', '00', 'aa', '00', '38', '9b', '71']
+    data_hex = ['63', '61', '73', '67', '00', '11', '00', '10', '80', '00', '00', 'aa', '00', '38', '9b', '71']
     payload_data = ['73', '69', '67', '6e', '61', '74', '75', '72', '65', '20', '70', '6c', '61', '63', '65', '68', '6f', '6c', '64', '65', '72', '3a', '63', '62', '2e', '73', '74', '61', '72', '6c', '69', '6e', '67', '5f', '31', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20']
 
     block = l_box + t_box + data_hex + payload_data
@@ -232,6 +232,7 @@ def create_assertions(list, label):
 
     assertion_blocks = []
     super_l_box_list = []
+    superbox_block_list = []
     total = 0
 
     content_list = []
@@ -255,14 +256,15 @@ def create_assertions(list, label):
         desc_list.append(description_block)
 
     for x in range(len(content_l_list)):
-            # create superbox 1_box and superbox block
-            superbox_lbox = get_superbox_l_box(desc_l_list[x][1], content_l_list[x][1])
-            superbox_block = create_super_box(superbox_lbox[0])
-            super_l_box_list.append(superbox_lbox[1])
+        # create superbox 1_box and superbox block
+        superbox_lbox = get_superbox_l_box(desc_l_list[x][1], content_l_list[x][1])
+        superbox_block = create_super_box(superbox_lbox[0])
+        superbox_block_list.append(superbox_block)
+        super_l_box_list.append(superbox_lbox[1])
 
     for a in range(len(content_list)):
         # create complete assertion box
-        block = make_block(superbox_block, desc_list[a], content_list[a])
+        block = make_block(superbox_block_list[a], desc_list[a], content_list[a])
         assertion_blocks.append(block)
 
     for i in super_l_box_list:
