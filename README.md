@@ -36,7 +36,7 @@ The CAI-Tool currently does not automatically inject the CAI hex code into an JP
 ## Injecting XMP 
 
 1) Utilize `exiv2`
-2) Run `exiv2 -M'set Xmp.dc.provenance self#jumbf=cai/cb.starling_1/cai.claim' <JPG Filename>
-3) Confirm run `exiv2 -p a pr <JPG Filename>
+2) Run `exiv2 -M'set Xmp.dc.provenance self#jumbf=cai/<store label>/cai.claim' <JPG Filename>`
+3) Confirm run `exiv2 -p a pr <JPG Filename>`
  
 
