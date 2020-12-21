@@ -1,5 +1,7 @@
+import argparse
 import hashlib
 import json
+import os
 import sys
 
 import multibase
@@ -416,60 +418,99 @@ def format_header_l_box(total_size):
     return l_box
 
 
-def process():
-    number_assertions = input('How many assertions? ')
-    number_assertions = int(number_assertions)
+def process(assertions, claim, store_label):
+    ass = assertions
 
-    if number_assertions > 0:
-        fname_list = run_assertion(number_assertions)
+    assertions = []
+    for i in ass[0]:
+        assertions = assertions + i
 
-        ass = create_assertions(fname_list[0], fname_list[1])
+    claim = claim
 
-        assertions = []
-        for i in ass[0]:
-            assertions = assertions + i
+    signature = create_signature()
 
-        claim_fname = run_claim()
+    # create assertion block
+    ass_desc = get_description_l_box('cai.assertions', 'cai.assertion')
+    ass_desc_block = create_description_box(ass_desc[0], 'cai.assertion', 'cai.assertions')
+    ass_super = get_superbox_l_box(ass_desc[1], ass[1])
+    ass_super_block = create_super_box(ass_super[0])
 
-        claim = create_claim(claim_fname)
+    ass_block = make_store_block(ass_super_block, ass_desc_block)
 
-        signature = create_signature()
+    payload_size = cai_store_payload_size(ass_super[1], claim[1], signature[1])
 
-        # create assertion block
-        ass_desc = get_description_l_box('cai.assertions', 'cai.assertion')
-        ass_desc_block = create_description_box(ass_desc[0], 'cai.assertion', 'cai.assertions')
-        ass_super = get_superbox_l_box(ass_desc[1], ass[1])
-        ass_super_block = create_super_box(ass_super[0])
+    label = store_label
+    store_desc = get_description_l_box(label, 'store')
+    store_desc_block = create_description_box(store_desc[0], 'store', label)
+    store_super = get_l_box_super_cai_store(store_desc[1], payload_size)
+    store_super_block = create_super_box(store_super[0])
+    store_block = make_store_block(store_super_block, store_desc_block)
 
-        ass_block = make_store_block(ass_super_block, ass_desc_block)
+    cai_payload = store_super[1]
+    cai_desc = get_description_l_box('cai', 'cai')
+    cai_desc_block = create_description_box(cai_desc[0], 'cai', 'cai')
+    cai_super = get_l_box_super_cai_store(cai_desc[1], cai_payload)
+    cai_super_block = create_super_box(cai_super[0])
+    cai_block = make_store_block(cai_super_block, cai_desc_block)
 
-        payload_size = cai_store_payload_size(ass_super[1], claim[1], signature[1])
+    injection = create_complete(cai_super[1], cai_block, store_block, ass_block, assertions, claim[0], signature[0])
+    print(injection)
+    print(len(injection))
 
-        label = run_store()
-        store_desc = get_description_l_box(label, 'store')
-        store_desc_block = create_description_box(store_desc[0], 'store', label)
-        store_super = get_l_box_super_cai_store(store_desc[1], payload_size)
-        store_super_block = create_super_box(store_super[0])
-        store_block = make_store_block(store_super_block, store_desc_block)
 
-        cai_payload = store_super[1]
-        cai_desc = get_description_l_box('cai', 'cai')
-        cai_desc_block = create_description_box(cai_desc[0], 'cai', 'cai')
-        cai_super = get_l_box_super_cai_store(cai_desc[1], cai_payload)
-        cai_super_block = create_super_box(cai_super[0])
-        cai_block = make_store_block(cai_super_block, cai_desc_block)
-
-        injection = create_complete(cai_super[1], cai_block, store_block, ass_block, assertions, claim[0], signature[0])
-        print(injection)
-        print(len(injection))
-
-    else:
-        print("Not a valid number of assertions")
+def parse_args():
+    ap = argparse.ArgumentParser()
+    ap.add_argument(
+        '-a', '--assertion',
+        help=('Assertion filepath. '
+              'Use multiple times for multiple Assertions.'
+              'Assertion label will be filename.'),
+        action='append',
+        default=[])
+    ap.add_argument(
+        '-c', '--claim',
+        help='Claim filepath.')
+    ap.add_argument(
+        '--store-label',
+        default='cb.starling_1',
+        help='Store label. Default: cb.starling_1')
+    ap.add_argument(
+        '-d', '--debug',
+        action='store_true',
+        help='Debug mode toggle')
+    return ap.parse_args()
 
 
 def main():
-    script = sys.argv[0]
-    process()
+    args = parse_args()
+
+    if len(args.assertion) > 0:
+        assertion_filepaths = args.assertion
+        assertion_labels = [os.path.splitext(os.path.basename(a))[0]
+                            for a in assertion_filepaths]
+        claim_filepath = args.claim
+        store_label = args.store_label
+    else:
+        number_assertions = int(input('How many assertions? '))
+        if number_assertions > 0:
+            assertion_filepaths, assertion_labels = run_assertion(
+                                                        number_assertions)
+        else:
+            print("Not a valid number of assertions")
+
+        claim_filepath = run_claim()
+        store_label = run_store()
+
+    if args.debug:
+        print(args)
+        print(assertion_filepaths)
+        print(assertion_labels)
+        print(claim_filepath)
+        print(store_label)
+
+    assertions = create_assertions(assertion_filepaths, assertion_labels)
+    claim = create_claim(claim_filepath)
+    process(assertions, claim, store_label)
 
 
 if __name__ == "__main__":
