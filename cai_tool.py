@@ -58,6 +58,9 @@ def type(label):
     if label == 'cai':
         type = ['63', '61', '63', '62', '00', '11', '00', '10', '80', '00', '00', 'aa', '00', '38', '9b', '71']
         size = len(type)
+    if label == 'cai.assertion':
+        type = ['63', '61', '61', '73', '00', '11', '00', '10', '80', '00', '00', 'aa', '00', '38', '9b', '71']
+        size = len(type)
 
     return type, size
 
@@ -385,8 +388,8 @@ def process():
         signature = create_signature()
 
         # create assertion block
-        ass_desc = get_description_l_box('cai.assertions', 'assertion')
-        ass_desc_block = create_description_box(ass_desc[0], 'assertion', 'cai.assertions')
+        ass_desc = get_description_l_box('cai.assertions', 'cai.assertion')
+        ass_desc_block = create_description_box(ass_desc[0], 'cai.assertion', 'cai.assertions')
         ass_super = get_superbox_l_box(ass_desc[1], ass[1])
         ass_super_block = create_super_box(ass_super[0])
 
