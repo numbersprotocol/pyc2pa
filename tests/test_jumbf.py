@@ -1,3 +1,5 @@
+import io
+import json
 import unittest
 
 from caitools.jumbf import App11Box
@@ -86,6 +88,29 @@ class TestApp11Box(unittest.TestCase):
         self.assertEqual(box_bytes[4:6], b'\x4a\x50')
         self.assertEqual(box_bytes[6:8], b'\x00\x01')
         self.assertEqual(box_bytes[8:12], b'\x00\x00\x00\x01')
+
+    def test_jumbf_hello_world(self):
+        testing_data = (
+            'ffeb00464a500001'
+            '000000010000003c'
+            '6a756d620000001f'
+            '6a756d646a736f6e'
+            '00110010800000aa'
+            '00389b710368656c'
+            '6c6f00000000156a'
+            '736f6e7b22666f6f'
+            '223a22626172227d'
+        )
+
+        data = {"foo":"bar"}
+        f = io.BytesIO(json.dumps(data, separators=(',', ':')).encode('utf-8'))
+        data_bytes = f.read()
+
+        s_box = create_json_superbox(data_bytes, 'hello')
+        app11_box = App11Box()
+        app11_box.payload = s_box.convert_bytes()
+
+        self.assertEqual(app11_box.convert_bytes(), bytes.fromhex(testing_data))
 
 
 if __name__ == '__main__':

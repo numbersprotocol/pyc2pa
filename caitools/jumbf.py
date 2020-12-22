@@ -96,7 +96,7 @@ class DescriptionBox(Box):
 
     def set_payload(self):
         db_type = bytes.fromhex(self.db_type)
-        db_toggle = (self.db_toggle).to_bytes(4, byteorder='big')
+        db_toggle = (self.db_toggle).to_bytes(1, byteorder='big')
         db_label = self.db_label.encode('utf-8') + b'\x00'
         self.payload = db_type + db_toggle + db_label
 
@@ -122,12 +122,16 @@ class App11Box(object):
         self.z = 1
         self.payload = b''
 
+    def get_size(self):
+        return len(self.convert_bytes())
+
     def convert_bytes(self):
         marker = bytes.fromhex(self.marker)
         ci = bytes.fromhex(self.ci)
         en = self.en.to_bytes(2, byteorder='big')
         z = self.z.to_bytes(4, byteorder='big')
-        length = len(marker) + 2 + len(ci) + len(en) + len(z) + len(self.payload)
+        # marker is not included
+        length = 2 + len(ci) + len(en) + len(z) + len(self.payload)
         le = length.to_bytes(2, byteorder='big')
         return marker + le + ci + en + z + self.payload
 
