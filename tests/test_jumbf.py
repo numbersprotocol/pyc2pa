@@ -8,7 +8,7 @@ from caitools.jumbf import SuperBox
 
 class TestBox(unittest.TestCase):
     def test_convert_bytes(self):
-        testing_data = b'\x00\x00\x00\x08aaaaaaaa'
+        testing_data = b'\x00\x00\x00\x08'
 
         box = Box()
         box_bytes = box.convert_bytes()
@@ -37,7 +37,7 @@ class TestContentBox(unittest.TestCase):
 
 class TestDescriptionBox(unittest.TestCase):
     def test_convert_bytes(self):
-        testing_t_box = b'jumd'
+        testing_t_box = '6a756d64'
 
         box = DescriptionBox(label='starling')
         box_bytes = box.convert_bytes()
@@ -49,7 +49,7 @@ class TestDescriptionBox(unittest.TestCase):
 
 class TestSuperBox(unittest.TestCase):
     def test_convert_bytes(self):
-        testing_t_box = b'jumb'
+        testing_t_box = '6a756d62'
 
         d_box = DescriptionBox()
         d_box_bytes = d_box.convert_bytes()

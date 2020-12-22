@@ -39,8 +39,12 @@ Cai_content_types = {
 
 
 class Box(object):
+    '''
+    t_box: HEX string
+    payload: bytes
+    '''
     def __init__(self):
-        self.t_box = b'aaaaaaaa'
+        self.t_box = ''
         self.payload = b''
 
     def get_size(self):
@@ -56,14 +60,16 @@ class Box(object):
 
         # Calculate box size dynamically.
         # 8 is from l_box (4) + t_box (4)
-        l_box = self.get_size()
-        return (l_box).to_bytes(4, byteorder='big') + self.t_box + self.payload
+        l_box = self.get_size().to_bytes(4, byteorder='big')
+        t_box = bytes.fromhex(self.t_box)
+
+        return l_box + t_box + self.payload
 
 
 class SuperBox(Box):
     def __init__(self):
         super(SuperBox, self).__init__()
-        self.t_box = bytes.fromhex('6a756d62')
+        self.t_box = 'jumb'.encode('utf-8').hex()
         self.description_box = None
         self.content_boxes = []
 
@@ -74,20 +80,25 @@ class SuperBox(Box):
 
 
 class DescriptionBox(Box):
+    '''
+    db_type: HEX string
+    db_toggle: integer
+    db_label: string
+    '''
     def __init__(self, content_type='json', label=''):
         super(DescriptionBox, self).__init__()
-        self.t_box = bytes.fromhex('6a756d64')
-        self.db_type = bytes.fromhex(Jumbf_content_types[content_type])
+        self.t_box = 'jumd'.encode('utf-8').hex()
+        self.db_type = Jumbf_content_types[content_type]
         # Spec A.3, Table A.2
-        self.db_toggle = b'\x03'
+        self.db_toggle = 3
         # Add 0 for CAI spec
-        self.db_label = label.encode('utf-8') + b'\x00'
+        self.db_label = label
 
     def set_payload(self):
-        print(self.db_type)
-        print(self.db_toggle)
-        print(self.db_label)
-        self.payload = self.db_type + self.db_toggle + self.db_label
+        db_type = bytes.fromhex(self.db_type)
+        db_toggle = (self.db_toggle).to_bytes(4, byteorder='big')
+        db_label = self.db_label.encode('utf-8') + b'\x00'
+        self.payload = db_type + db_toggle + db_label
 
     def print_box(self):
         print('t_box:', self.t_box)
@@ -98,6 +109,6 @@ class DescriptionBox(Box):
 
 
 class ContentBox(Box):
-    def __init__(self, content_type='json'):
+    def __init__(self, t_box_type='json'):
         super(ContentBox, self).__init__()
-        self.t_box = content_type.encode('utf-8')
+        self.t_box = t_box_type.encode('utf-8').hex()
