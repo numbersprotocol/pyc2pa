@@ -112,3 +112,41 @@ class ContentBox(Box):
     def __init__(self, t_box_type='json'):
         super(ContentBox, self).__init__()
         self.t_box = t_box_type.encode('utf-8').hex()
+
+
+class App11Box(object):
+    def __init__(self):
+        self.marker = 'FFEB'
+        self.ci = 'JP'.encode('utf-8').hex()
+        self.en = 1
+        self.z = 1
+        self.payload = b''
+
+    def convert_bytes(self):
+        marker = bytes.fromhex(self.marker)
+        ci = bytes.fromhex(self.ci)
+        en = self.en.to_bytes(2, byteorder='big')
+        z = self.z.to_bytes(4, byteorder='big')
+        length = len(marker) + 2 + len(ci) + len(en) + len(z) + len(self.payload)
+        le = length.to_bytes(2, byteorder='big')
+        return marker + le + ci + en + z + self.payload
+
+
+def create_single_content_superbox(content=b'',
+                         t_box_type='',
+                         content_type='',
+                         label=''):
+    c_box = ContentBox(t_box_type=t_box_type)
+    c_box.payload = content
+    d_box = DescriptionBox(content_type=content_type, label=label)
+    s_box = SuperBox()
+    s_box.description_box = d_box
+    s_box.content_boxes.append(c_box)
+    return s_box
+
+
+def create_json_superbox(content=b'', label=''):
+    return create_single_content_superbox(content=content,
+                                          t_box_type='json',
+                                          content_type='json',
+                                          label=label)
