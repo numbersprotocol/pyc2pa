@@ -29,15 +29,6 @@ Jumbf_content_types = {
 }
 
 
-Cai_content_types = {
-    'claim_block'    : '6361636200110010800000aa00389b71',
-    'store'          : '6361737400110010800000aa00389b71',
-    'assertion_store': '6361617300110010800000aa00389b71',
-    'claim'          : '6361636c00110010800000aa00389b71',
-    'claim_signature': '6361736700110010800000aa00389b71',
-}
-
-
 class Box(object):
     '''
     t_box: HEX string
