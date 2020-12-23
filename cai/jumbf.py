@@ -15,6 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with starling-cai.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
+
 '''Implementation of ISO/IEC 19566-5:2019(E)
 Information technologies - JPEG systems
 Part 5: JPEG universal metadata box format (JUMBF)
@@ -69,6 +71,11 @@ class SuperBox(Box):
         for content_box in self.content_boxes:
             self.payload += content_box.convert_bytes()
 
+    def print_box(self):
+        print('\nSuperboxBox')
+        print('\tt_box:', self.t_box)
+        print('\tbytes:', self.convert_bytes().hex())
+
 
 class DescriptionBox(Box):
     '''
@@ -76,10 +83,10 @@ class DescriptionBox(Box):
     db_toggle: integer
     db_label: string
     '''
-    def __init__(self, content_type='json', label=''):
+    def __init__(self, content_type=Jumbf_content_types['json'], label=''):
         super(DescriptionBox, self).__init__()
         self.t_box = 'jumd'.encode('utf-8').hex()
-        self.db_type = Jumbf_content_types[content_type]
+        self.db_type = content_type
         # Spec A.3, Table A.2
         self.db_toggle = 3
         # Add 0 for CAI spec
@@ -92,17 +99,25 @@ class DescriptionBox(Box):
         self.payload = db_type + db_toggle + db_label
 
     def print_box(self):
-        print('t_box:', self.t_box)
-        print('payload:', self.payload)
-        print('\tdb_type:', self.db_type)
-        print('\tdb_toggle:', self.db_toggle)
-        print('\tdb_label:', self.db_label)
+        print('\nDescriptionBox')
+        print('\tt_box:', self.t_box)
+        print('\tpayload:', self.payload.hex())
+        print('\t\tdb_type:', self.db_type)
+        print('\t\tdb_toggle:', self.db_toggle)
+        print('\t\tdb_label:', self.db_label)
+        print('\tbytes:', self.convert_bytes().hex())
 
 
 class ContentBox(Box):
     def __init__(self, t_box_type='json'):
         super(ContentBox, self).__init__()
         self.t_box = t_box_type.encode('utf-8').hex()
+
+    def print_box(self):
+        print('\nContentBox')
+        print('\tt_box:', self.t_box)
+        print('\tpayload:', self.payload.hex())
+        print('\tbytes:', self.convert_bytes().hex())
 
 
 class App11Box(object):
@@ -141,7 +156,12 @@ def create_single_content_superbox(content=b'',
 
 
 def create_json_superbox(content=b'', label=''):
-    return create_single_content_superbox(content=content,
-                                          t_box_type='json',
-                                          content_type='json',
-                                          label=label)
+    return create_single_content_superbox(
+        content=content,
+        t_box_type='json',
+        content_type=Jumbf_content_types['json'],
+        label=label)
+
+
+def json_to_bytes(json_object):
+    return json.dumps(json_object, separators=(',',':')).encode('utf-8')
