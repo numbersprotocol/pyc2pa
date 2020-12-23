@@ -2,13 +2,13 @@ import io
 import json
 import unittest
 
-from caitools.jumbf import App11Box
-from caitools.jumbf import Box
-from caitools.jumbf import ContentBox
-from caitools.jumbf import DescriptionBox
-from caitools.jumbf import SuperBox
+from cai.jumbf import App11Box
+from cai.jumbf import Box
+from cai.jumbf import ContentBox
+from cai.jumbf import DescriptionBox
+from cai.jumbf import SuperBox
 
-from caitools.jumbf import create_json_superbox
+from cai.jumbf import create_json_superbox
 
 
 class TestBox(unittest.TestCase):

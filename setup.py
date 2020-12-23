@@ -9,9 +9,9 @@ with open("README.md", "r") as f:
 
 
 setup(
-    name='caitools',
+    name='cai',
     version='v1.0.0',
-    description='Content Authenticity Initiative Tools.',
+    description='Content Authenticity Initiative Implementation.',
     long_description=long_description,
     long_description_content_type="text/markdown",
     url='https://github.com/numbersprotocol.io/starling-cai',
