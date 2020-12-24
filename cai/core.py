@@ -66,16 +66,15 @@ class CaiClaimSignature(SuperBox):
         self.description_box = DescriptionBox(
                                    content_type=Cai_content_types['claim_signature'],
                                    label='cai.signature')
-        self.content_boxes.append(ContentBox(t_box_type='uuid'))
-        self.content_boxes[0].payload = self.create_signature()
+        content_box = ContentBox(t_box_type='uuid')
+        content_box.payload = self.create_signature()
+        self.content_boxes.append(content_box)
 
     def create_signature(self):
         '''Create a Claim Signature payload in bytes.
         '''
         uuid = Cai_content_types['claim_signature']
         signature = 'signature placeholder:cb.starling_1'
-        #padding = bytes.fromhex('20') * (100 - len(signature))
-        #payload = bytes.fromhex(uuid) + signature.encode('utf-8') + padding
         payload = bytes.fromhex(uuid) + signature.encode('utf-8')
         return payload
 
