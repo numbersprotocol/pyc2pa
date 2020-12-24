@@ -25,8 +25,7 @@ from cai.jumbf import App11Box
 from cai.jumbf import create_json_superbox
 from cai.jumbf import json_to_bytes
 
-'''Implementation of CAI Whitepaper
-Content Authenticity Initiative
+'''Starling CLI tool to generate CAI metadata.
 '''
 
 
