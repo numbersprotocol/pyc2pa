@@ -36,6 +36,41 @@ Cai_content_types = {
 }
 
 
+Claim_mockup = {
+    'recorder': 'Starling Capture',
+    'signature': 'self#jumbf=cai/cb.starling_1/cai.signature',
+    'assertions': [
+        'self#jumbf=cai/cb.starling_1/cai.assertions/starling.location.precise?hl=z26ycANRgtWbqYX9cdsWD4rsTqz8RYHQArrq4CZJwZn1cxX73kTP6x3rRcBsUfMoBUAVbTEB7K',
+        'self#jumbf=cai/cb.starling_1/cai.assertions/starling.sensors?hl=z26ycANRgtWbqYX9cdsWD4rsTqz8RYHQArrq4CZJwZn1cxX73kTP6x3rRcBsUfMvY4QFEN3973',
+        'self#jumbf=cai/cb.starling_1/cai.assertions/starling.device?hl=z26ycANRgtWbqYX9cdsWD4rsTqz8RYHQArrq4CZJwZn1cxX73kTP6x3rRcBsUfMwEoBojZcUrZ',
+        'self#jumbf=cai/cb.starling_1/cai.assertions/starling.integrity?hl=z26ycANRgtWbqYX9cdsWD4rsTqz8RYHQArrq4CZJwZn1cxX73kTP6x3rRcBsUfMo3SG72sZg13'
+    ],
+    'asset_hashes': [
+        {
+            'start': '0x0000000000000000',
+            'length': '0x0000000000009959',
+            'name': 'JFIF SOI-APP0',
+            'url': '',
+            'value': 'EiAuxjtmax46cC2N3Y9aFmBO9Jfay8LEwJWzBUtZ0sUM8gA='
+        },
+        {
+            'start': '0x0000000000009959',
+            'length': '0x000000000000027d',
+            'name': 'JFIF APP1/XMP',
+            'url': '',
+            'value': 'EiDjZifCgG2iKxcYeChKTOcWlJ9I/UC9/c5XFiJREqJFpwA='
+        },
+        {
+            'start': '0x000000000000a90c',
+            'length': '0x00000000000215e6',
+            'name': 'JFIF DQT-EOI',
+            'url': '',
+            'value': 'EiArx031oA0N5KOEG6n9R/bJJFYJvmGlDoLtuwbRipLTKAA='
+        }
+    ]
+}
+
+
 class CaiAssertionStore(SuperBox):
     def __init__(self, assertions):
         super(CaiAssertionStore, self).__init__()
@@ -51,13 +86,14 @@ class CaiClaim(SuperBox):
         self.description_box = DescriptionBox(
                                    content_type=Cai_content_types['claim'],
                                    label='cai.claim')
-        self.content_boxes.append(ContentBox())
-        self.content_boxes[0].payload = json_to_bytes(self.create_claim(assertion_store))
+        content_box = ContentBox()
+        content_box.payload = json_to_bytes(self.create_claim(assertion_store))
+        self.content_boxes.append(content_box)
 
     def create_claim(self, assertion_store):
         '''Create a Claim JSON object
         '''
-        return {'foo': 'bar'}
+        return Claim_mockup
 
 
 class CaiClaimSignature(SuperBox):
@@ -75,7 +111,8 @@ class CaiClaimSignature(SuperBox):
         '''
         uuid = Cai_content_types['claim_signature']
         signature = 'signature placeholder:cb.starling_1'
-        payload = bytes.fromhex(uuid) + signature.encode('utf-8')
+        padding = b'\x20' * (100 - len(signature))
+        payload = bytes.fromhex(uuid) + signature.encode('utf-8') + padding
         return payload
 
 
