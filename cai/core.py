@@ -15,6 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with starling-cai.  If not, see <http://www.gnu.org/licenses/>.
 
+import hashlib
+
+import multibase
+import multihash
+
 from cai.jumbf import Box
 from cai.jumbf import ContentBox
 from cai.jumbf import DescriptionBox
@@ -61,6 +66,18 @@ Claim_asset_hashes_mockup = [
 ]
 
 
+def encode_hashlink(binary_content, codec='base58btc', to_hexstr=False):
+    mh = multihash.Multihash(multihash.Func.sha2_256,
+                             hashlib.sha256(binary_content).digest())
+    mb = multibase.encode(codec, mh.encode())
+    if to_hexstr:
+        # return hex string
+        return mb.hex()
+    else:
+        # return bytes
+        return mb
+
+
 class CaiAssertionStore(SuperBox):
     def __init__(self, assertions):
         super(CaiAssertionStore, self).__init__()
@@ -98,7 +115,7 @@ class CaiClaim(SuperBox):
             'self#jumbf=cai/{store_label}/cai.assertions/{assertion_label}?hl={hashlink}'.format(
                 store_label=store_label,
                 assertion_label=assertion.description_box.db_label,
-                hashlink='abcdefg'
+                hashlink=encode_hashlink(assertion.convert_bytes(), to_hexstr=True)
             )
             for assertion in assertion_store.content_boxes
         ]
