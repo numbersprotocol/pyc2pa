@@ -36,16 +36,7 @@ Cai_content_types = {
 }
 
 
-Claim_mockup = {
-    'recorder': 'Starling Capture',
-    'signature': 'self#jumbf=cai/cb.starling_1/cai.signature',
-    'assertions': [
-        'self#jumbf=cai/cb.starling_1/cai.assertions/starling.location.precise?hl=z26ycANRgtWbqYX9cdsWD4rsTqz8RYHQArrq4CZJwZn1cxX73kTP6x3rRcBsUfMoBUAVbTEB7K',
-        'self#jumbf=cai/cb.starling_1/cai.assertions/starling.sensors?hl=z26ycANRgtWbqYX9cdsWD4rsTqz8RYHQArrq4CZJwZn1cxX73kTP6x3rRcBsUfMvY4QFEN3973',
-        'self#jumbf=cai/cb.starling_1/cai.assertions/starling.device?hl=z26ycANRgtWbqYX9cdsWD4rsTqz8RYHQArrq4CZJwZn1cxX73kTP6x3rRcBsUfMwEoBojZcUrZ',
-        'self#jumbf=cai/cb.starling_1/cai.assertions/starling.integrity?hl=z26ycANRgtWbqYX9cdsWD4rsTqz8RYHQArrq4CZJwZn1cxX73kTP6x3rRcBsUfMo3SG72sZg13'
-    ],
-    'asset_hashes': [
+Claim_asset_hashes_mockup = [
         {
             'start': '0x0000000000000000',
             'length': '0x0000000000009959',
@@ -67,8 +58,7 @@ Claim_mockup = {
             'url': '',
             'value': 'EiArx031oA0N5KOEG6n9R/bJJFYJvmGlDoLtuwbRipLTKAA='
         }
-    ]
-}
+]
 
 
 class CaiAssertionStore(SuperBox):
@@ -81,19 +71,39 @@ class CaiAssertionStore(SuperBox):
 
 
 class CaiClaim(SuperBox):
-    def __init__(self, assertion_store):
+    def __init__(self, assertion_store,
+                 store_label='cb.starling_1',
+                 recorder='Starling Capture'):
         super(CaiClaim, self).__init__()
         self.description_box = DescriptionBox(
                                    content_type=Cai_content_types['claim'],
                                    label='cai.claim')
         content_box = ContentBox()
-        content_box.payload = json_to_bytes(self.create_claim(assertion_store))
+        content_box.payload = json_to_bytes(
+            self.create_claim(assertion_store,
+                              store_label=store_label,
+                              recorder=recorder)
+        )
         self.content_boxes.append(content_box)
 
-    def create_claim(self, assertion_store):
+    def create_claim(self, assertion_store,
+                     store_label='cb.starling_1',
+                     recorder='Starling Capture'):
         '''Create a Claim JSON object
         '''
-        return Claim_mockup
+        claim = {}
+        claim['recorder'] = recorder
+        claim['signature'] = 'self#jumbf=cai/{}/cai.signature'.format(store_label)
+        claim['assertions'] = [
+            'self#jumbf=cai/{store_label}/cai.assertions/{assertion_label}?hl={hashlink}'.format(
+                store_label=store_label,
+                assertion_label=assertion.description_box.db_label,
+                hashlink='abcdefg'
+            )
+            for assertion in assertion_store.content_boxes
+        ]
+        claim['asset_hashes'] = Claim_asset_hashes_mockup
+        return claim
 
 
 class CaiClaimSignature(SuperBox):
