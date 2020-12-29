@@ -66,13 +66,13 @@ Claim_asset_hashes_mockup = [
 ]
 
 
-def encode_hashlink(binary_content, codec='base58btc', to_hexstr=False):
+def encode_hashlink(binary_content, codec='base64', to_hexstr=False):
     mh = multihash.Multihash(multihash.Func.sha2_256,
                              hashlib.sha256(binary_content).digest())
     mb = multibase.encode(codec, mh.encode())
     if to_hexstr:
         # return hex string
-        return mb.hex()
+        return mb.decode('utf-8')
     else:
         # return bytes
         return mb
