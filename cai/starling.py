@@ -22,6 +22,7 @@ from cai.core import CaiClaimBlock
 from cai.core import CaiStore
 from cai.jumbf import App11Box
 
+from cai.core import insert_xmp_key
 from cai.jumbf import create_json_superbox
 from cai.jumbf import json_to_bytes
 
@@ -100,7 +101,8 @@ def main():
         fpath = fname + '-cai' + fext
         with open(fpath, 'wb') as f:
             data_bytes = raw_bytes[0:2] + cai_segment.convert_bytes() + raw_bytes[2:]
-            f.write(data_bytes)
+            cai_data_bytes = insert_xmp_key(data_bytes, store_label=store_label)
+            f.write(cai_data_bytes)
 
 
 if __name__ == "__main__":

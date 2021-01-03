@@ -19,6 +19,7 @@ import hashlib
 
 import multibase
 import multihash
+import pyexiv2
 
 from cai.jumbf import Box
 from cai.jumbf import ContentBox
@@ -76,6 +77,15 @@ def encode_hashlink(binary_content, codec='base64', to_hexstr=False):
     else:
         # return bytes
         return mb
+
+
+def insert_xmp_key(data_bytes, store_label='cai/cb.starling_1'):
+    metadata = pyexiv2.ImageMetadata.from_buffer(data_bytes)
+    metadata.read()
+    metadata['Xmp.dcterms.provenance'] = pyexiv2.XmpTag('Xmp.dcterms.provenance',
+                                                        'self#jumbf=' + store_label)
+    metadata.write()
+    return metadata.buffer
 
 
 class CaiAssertionStore(SuperBox):
