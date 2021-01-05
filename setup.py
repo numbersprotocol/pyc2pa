@@ -10,7 +10,7 @@ with open("README.md", "r") as f:
 
 setup(
     name='cai',
-    version='v1.0.0',
+    version='v1.1.0',
     description='Content Authenticity Initiative Implementation.',
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -37,7 +37,8 @@ setup(
     python_requires='>=3',
     entry_points={
         'console_scripts': [
-            'cai_tool=caitools.cai_tool:main',
+            'cai_tool=cai.cai_tool:main',
+            'starling_cai=cai.starling:main',
         ]
     },
     test_suite='tests'
