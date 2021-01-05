@@ -10,7 +10,7 @@ with open("README.md", "r") as f:
 
 setup(
     name='cai',
-    version='v1.1.0',
+    version='v1.1.1',
     description='Content Authenticity Initiative Implementation.',
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -30,8 +30,9 @@ setup(
     keywords=['wheels'],
     packages=find_packages(exclude=['tests']),
     install_requires=[
-        #'multibase',
-        #'multihash',
+        'py-multibase>=1.0.3',
+        'pymultihash>=0.8.2',
+        'py3exiv2>=0.9.3',
         #'tox',
     ],
     python_requires='>=3',
