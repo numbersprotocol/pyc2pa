@@ -21,6 +21,10 @@ import multibase
 import multihash
 import pyexiv2
 
+from Crypto.Hash import SHA256
+from Crypto.PublicKey import RSA
+from Crypto.Signature import PKCS1_v1_5
+
 from cai.jumbf import Box
 from cai.jumbf import ContentBox
 from cai.jumbf import DescriptionBox
@@ -67,6 +71,14 @@ Claim_asset_hashes_mockup = [
 ]
 
 
+def generate_signature(data, key):
+    h = SHA256.new(data)
+    rsa = RSA.importKey(key)
+    signer = PKCS1_v1_5.new(rsa)
+    signature = signer.sign(h)
+    return signature
+
+
 def encode_hashlink(binary_content, codec='base64', to_hexstr=False):
     mh = multihash.Multihash(multihash.Func.sha2_256,
                              hashlib.sha256(binary_content).digest())
@@ -100,7 +112,7 @@ class CaiAssertionStore(SuperBox):
 class CaiClaim(SuperBox):
     def __init__(self, assertion_store,
                  store_label='cb.starling_1',
-                 recorder='Starling Capture'):
+                 recorder='Starling Capture using Numbers Protocol'):
         super(CaiClaim, self).__init__()
         self.description_box = DescriptionBox(
                                    content_type=Cai_content_types['claim'],
@@ -133,6 +145,25 @@ class CaiClaim(SuperBox):
         return claim
 
 
+class CaiClaimCMSSignature(SuperBox):
+    def __init__(self, claim, key):
+        super(CaiClaimCMSSignature, self).__init__()
+        self.description_box = DescriptionBox(
+                                    content_type=Cai_content_types['claim_signature'],
+                                    label='cai.signature')
+        content_box = ContentBox(t_box_type='uuid')
+        content_box.payload = self.create_cms_signature(claim, key)
+        self.content_boxes.append(content_box)
+
+    def create_cms_signature(self, claim, key):
+        uuid = Cai_content_types['claim_signature']
+        data = json_to_bytes(claim)
+        signature = generate_signature(data, key)
+        payload = bytes.fromhex(uuid) + signature
+
+        return payload
+
+
 class CaiClaimSignature(SuperBox):
     def __init__(self):
         super(CaiClaimSignature, self).__init__()
@@ -156,14 +187,15 @@ class CaiClaimSignature(SuperBox):
 class CaiStore(SuperBox):
     def __init__(self, label='cb.starling_1',
                  assertions=[],
-                 recorder='Starling Capture'):
+                 recorder='Starling Capture',
+                 key=[]):
         super(CaiStore, self).__init__()
         self.description_box = DescriptionBox(
                                    content_type=Cai_content_types['store'],
                                    label=label)
         self.assertion_store = CaiAssertionStore(assertions)
         self.claim = CaiClaim(self.assertion_store, recorder=recorder)
-        self.signature = CaiClaimSignature()
+        self.signature = CaiClaimCMSSignature(self.claim.create_claim(self.assertion_store), key)
         self.content_boxes.append(self.assertion_store)
         self.content_boxes.append(self.claim)
         self.content_boxes.append(self.signature)
