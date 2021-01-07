@@ -19,6 +19,7 @@ import argparse
 import os
 
 from cai.core import CaiClaimBlock
+from cai.core import CaiClaimCMSSignature
 from cai.core import CaiStore
 from cai.jumbf import App11Box
 
@@ -29,7 +30,6 @@ from cai.jumbf import json_to_bytes
 
 '''Starling CLI tool to generate CAI metadata.
 '''
-
 
 def parse_args():
     ap = argparse.ArgumentParser()
@@ -48,6 +48,10 @@ def parse_args():
         '--recorder',
         default='Starling Capture',
         help='Claim recorder. Default: Starling Capture')
+    ap.add_argument(
+        '-k', '--key',
+        default='',
+        help='Private key filepath.')
     ap.add_argument(
         '-o', '--output',
         default='',
@@ -71,6 +75,7 @@ def main():
                         for a in assertion_filepaths]
     store_label = args.store_label
     recorder = args.recorder
+    key_filepath = args.key
 
     if args.debug:
         print(args)
@@ -91,7 +96,10 @@ def main():
             raise Exception(
                 'Unknown assertion type {0} from {1}'.format(fileext, filepath))
 
-    cai_store = CaiStore(label=store_label, assertions=assertions, recorder=recorder)
+    with open(key_filepath, 'rb') as f:
+        key = f.read()
+
+    cai_store = CaiStore(label=store_label, assertions=assertions, recorder=recorder, key=key)
     cai_claim_block = CaiClaimBlock()
     cai_claim_block.content_boxes.append(cai_store)
     cai_segment = App11Box()
