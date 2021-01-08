@@ -163,5 +163,13 @@ def create_json_superbox(content=b'', label=''):
         label=label)
 
 
+def create_codestream_superbox(content=b'', label=''):
+    return create_single_content_superbox(
+        content=content,
+        t_box_type='jp2c',
+        content_type=Jumbf_content_types['codestream'],
+        label=label)
+
+
 def json_to_bytes(json_object):
     return json.dumps(json_object, separators=(',',':')).encode('utf-8')

@@ -23,6 +23,7 @@ from cai.core import CaiStore
 from cai.jumbf import App11Box
 
 from cai.core import insert_xmp_key
+from cai.jumbf import create_codestream_superbox
 from cai.jumbf import create_json_superbox
 from cai.jumbf import json_to_bytes
 
@@ -81,7 +82,14 @@ def main():
     for filepath, label in zip(assertion_filepaths, assertion_labels):
         with open(filepath, 'rb') as f:
             data_bytes = f.read()
-        assertions.append(create_json_superbox(content=data_bytes, label=label))
+        fileext = os.path.splitext(filepath)[1]
+        if fileext == '.json':
+            assertions.append(create_json_superbox(content=data_bytes, label=label))
+        elif fileext == '.jpg':
+            assertions.append(create_codestream_superbox(content=data_bytes, label=label))
+        else:
+            raise Exception(
+                'Unknown assertion type {0} from {1}'.format(fileext, filepath))
 
     cai_store = CaiStore(label=store_label, assertions=assertions, recorder=recorder)
     cai_claim_block = CaiClaimBlock()
