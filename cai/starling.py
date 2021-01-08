@@ -44,6 +44,10 @@ def parse_args():
         default='cb.starling_1',
         help='Store label. Default: cb.starling_1')
     ap.add_argument(
+        '--recorder',
+        default='Starling Capture',
+        help='Claim recorder. Default: Starling Capture')
+    ap.add_argument(
         '-o', '--output',
         default='',
         help='Save CAI metadata to the filepath.')
@@ -65,6 +69,7 @@ def main():
     assertion_labels = [os.path.splitext(os.path.basename(a))[0]
                         for a in assertion_filepaths]
     store_label = args.store_label
+    recorder = args.recorder
 
     if args.debug:
         print(args)
@@ -78,7 +83,7 @@ def main():
             data_bytes = f.read()
         assertions.append(create_json_superbox(content=data_bytes, label=label))
 
-    cai_store = CaiStore(label=store_label, assertions=assertions)
+    cai_store = CaiStore(label=store_label, assertions=assertions, recorder=recorder)
     cai_claim_block = CaiClaimBlock()
     cai_claim_block.content_boxes.append(cai_store)
     cai_segment = App11Box()

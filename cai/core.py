@@ -154,13 +154,15 @@ class CaiClaimSignature(SuperBox):
 
 
 class CaiStore(SuperBox):
-    def __init__(self, label='cb.starling_1', assertions=[]):
+    def __init__(self, label='cb.starling_1',
+                 assertions=[],
+                 recorder='Starling Capture'):
         super(CaiStore, self).__init__()
         self.description_box = DescriptionBox(
                                    content_type=Cai_content_types['store'],
                                    label=label)
         self.assertion_store = CaiAssertionStore(assertions)
-        self.claim = CaiClaim(self.assertion_store)
+        self.claim = CaiClaim(self.assertion_store, recorder=recorder)
         self.signature = CaiClaimSignature()
         self.content_boxes.append(self.assertion_store)
         self.content_boxes.append(self.claim)
