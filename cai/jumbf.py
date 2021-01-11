@@ -131,15 +131,44 @@ class App11Box(object):
     def get_size(self):
         return len(self.convert_bytes())
 
+    def _split_payload(self):
+        # Le (2B) + CI (2B) + En (4B) + Z (4B) + LBox (4B) + TBox (4B) = 18
+        # Le_max = 65535
+        # segment payload size = 65535 - 18 = 65517
+
+        segment_payload_size = 65517
+
+        # Preserve LBox and TBox
+        # We will split original payload to multiple sub-payloads,
+        # and add both LBox and TBox to each of the sub-payloads.
+        lbox = self.payload[:4]
+        tbox = self.payload[4:8]
+        payload = self.payload[8:]
+
+        segment_superboxes = []
+        while len(payload) > segment_payload_size:
+            segment_superboxes.append(lbox + tbox + payload[:segment_payload_size])
+            payload = payload[segment_payload_size:]
+        segment_superboxes.append(lbox + tbox + payload)
+        return segment_superboxes
+
     def convert_bytes(self):
-        marker = bytes.fromhex(self.marker)
-        ci = bytes.fromhex(self.ci)
-        en = self.en.to_bytes(2, byteorder='big')
-        z = self.z.to_bytes(4, byteorder='big')
-        # marker is not included
-        length = 2 + len(ci) + len(en) + len(z) + len(self.payload)
-        le = length.to_bytes(2, byteorder='big')
-        return marker + le + ci + en + z + self.payload
+        # Reminder: Superbox = LBox + TBox + Payload
+        segment_superboxes = self._split_payload()
+        total_bytes = b''
+        self.z = 1
+        for superbox in segment_superboxes:
+            marker = bytes.fromhex(self.marker)
+            ci = bytes.fromhex(self.ci)
+            en = self.en.to_bytes(2, byteorder='big')
+            z = self.z.to_bytes(4, byteorder='big')
+
+            # marker is not included
+            length = 2 + len(ci) + len(en) + len(z) + len(superbox)
+            le = length.to_bytes(2, byteorder='big')
+            total_bytes += marker + le + ci + en + z + superbox
+            self.z += 1
+        return total_bytes
 
 
 def create_single_content_superbox(content=b'',
