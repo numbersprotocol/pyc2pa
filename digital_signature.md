@@ -14,7 +14,7 @@
     Pubkey.out
     ```
 
- 2. Open `Privkey.out` and delete the `Certificate` portion. Current implementation does not work if certificate is included.
+ 2. Open `Pubkey.out` and delete the `Certificate` portion. Current implementation does not work if certificate is included.
 
  3. Generate Detached Signature with:
 
