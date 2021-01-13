@@ -71,14 +71,6 @@ Claim_asset_hashes_mockup = [
 ]
 
 
-def generate_signature(data, key):
-    h = SHA256.new(data)
-    rsa = RSA.importKey(key)
-    signer = PKCS1_v1_5.new(rsa)
-    signature = signer.sign(h)
-    return signature
-
-
 def encode_hashlink(binary_content, codec='base64', to_hexstr=False):
     mh = multihash.Multihash(multihash.Func.sha2_256,
                              hashlib.sha256(binary_content).digest())
@@ -155,12 +147,18 @@ class CaiClaimCMSSignature(SuperBox):
         content_box.payload = self.create_cms_signature(claim, key)
         self.content_boxes.append(content_box)
 
+    def generate_signature(self, data, key):
+        h = SHA256.new(data)
+        rsa = RSA.importKey(key)
+        signer = PKCS1_v1_5.new(rsa)
+        signature = signer.sign(h)
+        return signature
+
     def create_cms_signature(self, claim, key):
         uuid = Cai_content_types['claim_signature']
         data = json_to_bytes(claim)
-        signature = generate_signature(data, key)
+        signature = self.generate_signature(data, key)
         payload = bytes.fromhex(uuid) + signature
-
         return payload
 
 
