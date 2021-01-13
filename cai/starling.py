@@ -96,8 +96,11 @@ def main():
             raise Exception(
                 'Unknown assertion type {0} from {1}'.format(fileext, filepath))
 
-    with open(key_filepath, 'rb') as f:
-        key = f.read()
+    if key_filepath != '':
+        with open(key_filepath, 'rb') as f:
+            key = f.read()
+    else:
+        key = []
 
     cai_store = CaiStore(label=store_label, assertions=assertions, recorder=recorder, key=key)
     cai_claim_block = CaiClaimBlock()

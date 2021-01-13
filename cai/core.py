@@ -195,7 +195,10 @@ class CaiStore(SuperBox):
                                    label=label)
         self.assertion_store = CaiAssertionStore(assertions)
         self.claim = CaiClaim(self.assertion_store, recorder=recorder)
-        self.signature = CaiClaimCMSSignature(self.claim.create_claim(self.assertion_store), key)
+        if len(key) == 0:
+            self.signature = CaiClaimSignature()
+        else:
+            self.signature = CaiClaimCMSSignature(self.claim.create_claim(self.assertion_store), key)
         self.content_boxes.append(self.assertion_store)
         self.content_boxes.append(self.claim)
         self.content_boxes.append(self.signature)
