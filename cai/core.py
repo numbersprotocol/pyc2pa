@@ -33,6 +33,8 @@ from cai.jumbf import SuperBox
 from cai.jumbf import create_json_superbox
 from cai.jumbf import json_to_bytes
 
+from endesive import plain
+
 '''Implementation of CAI Whitepaper
 Content Authenticity Initiative
 '''
@@ -136,6 +138,22 @@ class CaiClaim(SuperBox):
         claim['asset_hashes'] = Claim_asset_hashes_mockup
         return claim
 
+class CaiClaimEndesiveSignature(SuperBox):
+    def __init__(self, claim, key):
+        super(CaiClaimEndesiveSignature, self).__init__()
+        self.description_box = DescriptionBox(
+                                    content_type=Cai_content_types['claim_signature'],
+                                    label='cai.signature')
+        content_box = ContentBox(t_box_type='uuid')
+        content_box.payload = self.create_endesive_signature(claim, key)
+        self.content_boxes.append(content_box)
+    
+    def create_endesive_signature(self, claim, key):
+        uuid = Cai_content_types['claim_signature']
+        data = json_to_bytes(claim)
+        siguature = plain.sign(data, key[0], key[1], key[2], 'sha256', attrs=True)
+        payload = bytes.fromhex(uuid) + siguature
+        return payload
 
 class CaiClaimCMSSignature(SuperBox):
     def __init__(self, claim, key):
@@ -186,7 +204,8 @@ class CaiStore(SuperBox):
     def __init__(self, label='cb.starling_1',
                  assertions=[],
                  recorder='Starling Capture',
-                 key=[]):
+                 key=[],
+                 sig='cms'):
         super(CaiStore, self).__init__()
         self.description_box = DescriptionBox(
                                    content_type=Cai_content_types['store'],
@@ -196,7 +215,10 @@ class CaiStore(SuperBox):
         if len(key) == 0:
             self.signature = CaiClaimSignature()
         else:
-            self.signature = CaiClaimCMSSignature(self.claim.create_claim(self.assertion_store), key)
+            if sig == 'cms':
+                self.signature = CaiClaimCMSSignature(self.claim.create_claim(self.assertion_store), key)
+            if sig == 'endesive':
+                self.signature = CaiClaimEndesiveSignature(self.claim.create_claim(self.assertion_store), key)
         self.content_boxes.append(self.assertion_store)
         self.content_boxes.append(self.claim)
         self.content_boxes.append(self.signature)
