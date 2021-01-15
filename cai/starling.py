@@ -28,6 +28,9 @@ from cai.jumbf import create_codestream_superbox
 from cai.jumbf import create_json_superbox
 from cai.jumbf import json_to_bytes
 
+from cryptography.hazmat import backends
+from cryptography.hazmat.primitives.serialization import pkcs12
+
 '''Starling CLI tool to generate CAI metadata.
 '''
 
@@ -53,6 +56,10 @@ def parse_args():
         default='',
         help='Private key filepath.')
     ap.add_argument(
+        '-s', '--sig',
+        default='cms',
+        help='cms or endesive.')
+    ap.add_argument(
         '-o', '--output',
         default='',
         help='Save CAI metadata to the filepath.')
@@ -76,12 +83,14 @@ def main():
     store_label = args.store_label
     recorder = args.recorder
     key_filepath = args.key
+    sig = args.sig
 
     if args.debug:
         print(args)
         print(assertion_filepaths)
         print(assertion_labels)
         print(store_label)
+        print(sig)
 
     assertions = []
     for filepath, label in zip(assertion_filepaths, assertion_labels):
@@ -98,11 +107,14 @@ def main():
 
     if key_filepath != '':
         with open(key_filepath, 'rb') as f:
-            key = f.read()
+            if sig=='cms':
+                key = f.read()
+            if sig=='endesive':
+                key = pkcs12.load_key_and_certificates(f.read(), b'1234', backends.default_backend())
     else:
         key = []
 
-    cai_store = CaiStore(label=store_label, assertions=assertions, recorder=recorder, key=key)
+    cai_store = CaiStore(label=store_label, assertions=assertions, recorder=recorder, key=key, sig=sig)
     cai_claim_block = CaiClaimBlock()
     cai_claim_block.content_boxes.append(cai_store)
     cai_segment = App11Box()
