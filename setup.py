@@ -33,6 +33,7 @@ setup(
         'py-multibase>=1.0.3',
         'pymultihash>=0.8.2',
         'py3exiv2>=0.9.3',
+        'pycrypto>=2.6.1',
         #'tox',
     ],
     python_requires='>=3',
