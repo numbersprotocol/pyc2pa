@@ -87,9 +87,18 @@ def insert_xmp_key(data_bytes, store_label='cai/cb.starling_1'):
     metadata = pyexiv2.ImageMetadata.from_buffer(data_bytes)
     metadata.read()
     metadata['Xmp.dcterms.provenance'] = pyexiv2.XmpTag('Xmp.dcterms.provenance',
-                                                        'self#jumbf=' + store_label)
+                                                        'self#jumbf=cai/' + store_label)
     metadata.write()
     return metadata.buffer
+
+
+def get_xmp_tag(data_bytes, tag='Xmp.dcterms.provenance'):
+    metadata = pyexiv2.ImageMetadata.from_buffer(data_bytes)
+    metadata.read()
+    if tag in metadata.xmp_keys:
+        return metadata[tag].raw_value
+    else:
+        return ''
 
 
 class CaiAssertionStore(SuperBox):
@@ -104,7 +113,8 @@ class CaiAssertionStore(SuperBox):
 class CaiClaim(SuperBox):
     def __init__(self, assertion_store,
                  store_label='cb.starling_1',
-                 recorder='Starling Capture using Numbers Protocol'):
+                 recorder='Starling Capture using Numbers Protocol',
+                 parent_claim=''):
         super(CaiClaim, self).__init__()
         self.description_box = DescriptionBox(
                                    content_type=Cai_content_types['claim'],
@@ -113,13 +123,15 @@ class CaiClaim(SuperBox):
         content_box.payload = json_to_bytes(
             self.create_claim(assertion_store,
                               store_label=store_label,
-                              recorder=recorder)
+                              recorder=recorder,
+                              parent_claim=parent_claim)
         )
         self.content_boxes.append(content_box)
 
     def create_claim(self, assertion_store,
                      store_label='cb.starling_1',
-                     recorder='Starling Capture'):
+                     recorder='Starling Capture',
+                     parent_claim=''):
         '''Create a Claim JSON object
         '''
         claim = {}
@@ -134,6 +146,8 @@ class CaiClaim(SuperBox):
             for assertion in assertion_store.content_boxes
         ]
         claim['asset_hashes'] = Claim_asset_hashes_mockup
+        if parent_claim != '':
+            claim['parent_claim'] = parent_claim
         return claim
 
 
@@ -186,13 +200,14 @@ class CaiStore(SuperBox):
     def __init__(self, label='cb.starling_1',
                  assertions=[],
                  recorder='Starling Capture',
+                 parent_claim='',
                  key=[]):
         super(CaiStore, self).__init__()
         self.description_box = DescriptionBox(
                                    content_type=Cai_content_types['store'],
                                    label=label)
         self.assertion_store = CaiAssertionStore(assertions)
-        self.claim = CaiClaim(self.assertion_store, recorder=recorder)
+        self.claim = CaiClaim(self.assertion_store, recorder=recorder, parent_claim=parent_claim)
         if len(key) == 0:
             self.signature = CaiClaimSignature()
         else:

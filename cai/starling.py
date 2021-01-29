@@ -23,6 +23,7 @@ from cai.core import CaiClaimCMSSignature
 from cai.core import CaiStore
 from cai.jumbf import App11Box
 
+from cai.core import get_xmp_tag
 from cai.core import insert_xmp_key
 from cai.jumbf import create_codestream_superbox
 from cai.jumbf import create_json_superbox
@@ -83,6 +84,13 @@ def main():
         print(assertion_labels)
         print(store_label)
 
+    # read media content if injection is enabled
+    with open(args.inject, 'rb') as f:
+        raw_bytes = f.read()
+    parent_claim = get_xmp_tag(raw_bytes)
+    print('parent_claim: ', parent_claim)
+
+    # create CAI metadata
     assertions = []
     for filepath, label in zip(assertion_filepaths, assertion_labels):
         with open(filepath, 'rb') as f:
@@ -102,7 +110,11 @@ def main():
     else:
         key = []
 
-    cai_store = CaiStore(label=store_label, assertions=assertions, recorder=recorder, key=key)
+    cai_store = CaiStore(label=store_label,
+                         assertions=assertions,
+                         recorder=recorder,
+                         parent_claim=parent_claim,
+                         key=key)
     cai_claim_block = CaiClaimBlock()
     cai_claim_block.content_boxes.append(cai_store)
     cai_segment = App11Box()
@@ -118,10 +130,6 @@ def main():
     # inject CAI metadata
     if len(args.inject) > 0:
         fname, fext = os.path.splitext(args.inject)
-
-        with open(args.inject, 'rb') as f:
-            raw_bytes = f.read()
-
         fpath = fname + '-cai' + fext
         with open(fpath, 'wb') as f:
             data_bytes = raw_bytes[0:2] + cai_segment.convert_bytes() + raw_bytes[2:]
