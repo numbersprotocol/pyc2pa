@@ -87,7 +87,7 @@ def insert_xmp_key(data_bytes, store_label='cai/cb.starling_1'):
     metadata = pyexiv2.ImageMetadata.from_buffer(data_bytes)
     metadata.read()
     metadata['Xmp.dcterms.provenance'] = pyexiv2.XmpTag('Xmp.dcterms.provenance',
-                                                        'self#jumbf=cai/' + store_label)
+                                                        'self#jumbf=cai/{}/cai.claim'.format(store_label))
     metadata.write()
     return metadata.buffer
 

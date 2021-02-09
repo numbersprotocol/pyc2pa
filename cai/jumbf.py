@@ -16,6 +16,7 @@
 # along with starling-cai.  If not, see <http://www.gnu.org/licenses/>.
 
 import json
+import re
 
 '''Implementation of ISO/IEC 19566-5:2019(E)
 Information technologies - JPEG systems
@@ -121,11 +122,11 @@ class ContentBox(Box):
 
 
 class App11Box(object):
-    def __init__(self):
+    def __init__(self, en=1, z=1):
         self.marker = 'FFEB'
         self.ci = 'JP'.encode('utf-8').hex()
-        self.en = 1
-        self.z = 1
+        self.en = en
+        self.z = z
         self.payload = b''
 
     def get_size(self):
@@ -156,18 +157,19 @@ class App11Box(object):
         # Reminder: Superbox = LBox + TBox + Payload
         segment_superboxes = self._split_payload()
         total_bytes = b''
-        self.z = 1
+        current_z = self.z
         for superbox in segment_superboxes:
             marker = bytes.fromhex(self.marker)
             ci = bytes.fromhex(self.ci)
             en = self.en.to_bytes(2, byteorder='big')
-            z = self.z.to_bytes(4, byteorder='big')
+            z = current_z.to_bytes(4, byteorder='big')
 
             # marker is not included
             length = 2 + len(ci) + len(en) + len(z) + len(superbox)
             le = length.to_bytes(2, byteorder='big')
             total_bytes += marker + le + ci + en + z + superbox
-            self.z += 1
+            print('current_z:', current_z)
+            current_z += 1
         return total_bytes
 
 
@@ -202,3 +204,23 @@ def create_codestream_superbox(content=b'', label=''):
 
 def json_to_bytes(json_object):
     return json.dumps(json_object, separators=(',',':')).encode('utf-8')
+
+
+def get_app11_marker_segment_headers(data_bytes):
+    marker = b'\xff\xeb'
+    offsets = [m.start() for m in re.finditer(marker, data_bytes)]
+    headers = {}
+    for offset in offsets:
+        header = {}
+        header['le']     = int.from_bytes(data_bytes[offset + 2 : offset + 4], byteorder='big')
+        header['ci']     = data_bytes[offset + 4 : offset + 6].decode('utf-8')
+        header['en']     = int.from_bytes(data_bytes[offset + 6 : offset + 8], byteorder='big')
+        header['z']      = int.from_bytes(data_bytes[offset + 8 : offset + 12], byteorder='big')
+        header['lbox']   = int.from_bytes(data_bytes[offset + 12 : offset + 16], byteorder='big')
+        header['tbox']   = data_bytes[offset + 16 : offset + 20].decode('utf-8')
+        header['offset'] = offset
+
+        # passive protection to skip illegal or empty segment
+        if header['le'] > 10:
+            headers[header['z']] = header
+    return headers
