@@ -129,7 +129,7 @@ class CaiClaim(SuperBox):
             'self#jumbf=cai/{store_label}/cai.assertions/{assertion_label}?hl={hashlink}'.format(
                 store_label=store_label,
                 assertion_label=assertion.description_box.db_label,
-                hashlink=encode_hashlink(assertion.convert_bytes(), to_hexstr=True)
+                hashlink=encode_hashlink(assertion.content_boxes[0].convert_bytes()[8:], to_hexstr=True)
             )
             for assertion in assertion_store.content_boxes
         ]

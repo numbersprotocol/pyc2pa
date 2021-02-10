@@ -86,7 +86,7 @@ def main():
     assertions = []
     for filepath, label in zip(assertion_filepaths, assertion_labels):
         with open(filepath, 'rb') as f:
-            data_bytes = f.read()
+            data_bytes = f.read().strip()
         fileext = os.path.splitext(filepath)[1]
         if fileext == '.json':
             assertions.append(create_json_superbox(content=data_bytes, label=label))
