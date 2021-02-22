@@ -91,17 +91,10 @@ def main():
 
     # get the label of the last Claim
     parent_claim = get_xmp_tag(raw_bytes)
-    print('parent_claim: ', parent_claim)
 
     # get App11 marker segment headers
     app11_headers = get_app11_marker_segment_headers(raw_bytes)
     has_app11_headers = True if len(app11_headers) > 0 else False
-    if has_app11_headers:
-        print('Find App11 marker segments')
-        for i in range(1, len(app11_headers) + 1):
-            print('\t{0}'.format(app11_headers[i]))
-    else:
-        print('No existing App11 marker segment.')
 
     # create CAI metadata
     assertions = []
@@ -124,23 +117,31 @@ def main():
     else:
         key = []
 
-    # create a new Store
-    cai_store = CaiStore(label=store_label,
-                         assertions=assertions,
-                         recorder=recorder,
-                         parent_claim=parent_claim,
-                         key=key)
     if has_app11_headers:
+        # generate acquisition assertion
+        acquisition_assertion = {
+            'dc:format': 'image/jpeg',
+            'dc:title': os.path.basename(args.inject),
+            'dcterms:provenance': parent_claim,
+            'stRef:DocumentID': 'xmp:fakeid:39afb1d3-7f8c-44e6-b771-85e0d9adb377',
+            'stRef:InstanceID': 'xmp:fakeid:10c04858-d3fd-4e2c-8947-7f1e29d62fbe',
+            'thumbnail': 'self#jumbf=cai/{}/cai.assertions/cai.acquisition.thumbnail.jpeg'.format(store_label)
+        }
+        assertions.append(create_json_superbox(
+            content=json_to_bytes(acquisition_assertion),
+            label='cai.acquisition_1'))
+
+        # create a new Store
+        cai_store = CaiStore(label=store_label,
+                             assertions=assertions,
+                             recorder=recorder,
+                             parent_claim=parent_claim,
+                             key=key)
+
         # get last segment header information
         header_number = len(app11_headers)
-        last_le = app11_headers[header_number]['le']
         last_en = app11_headers[header_number]['en']
-        last_z = app11_headers[header_number]['z']
         last_lbox = app11_headers[header_number]['lbox']
-        last_tbox = app11_headers[header_number]['tbox']
-        last_offset = app11_headers[header_number]['offset']
-        print('Last Le: {0}, En: {1}, Z: {2}, LBox: {3}, TBox: {4}, offset: {5}'.format(
-            last_le, last_en, last_z, last_lbox, last_tbox, last_offset))
 
         # re-construct Claim Block payload
         claim_block_payload = bytearray()
@@ -149,93 +150,19 @@ def main():
             payload_end = payload_start + (app11_headers[i]['le'] - 18)
             payload = raw_bytes[payload_start : payload_end]
             claim_block_payload += payload
-        print('Claim Block payload size (Description/Content Boxes): {}'.format(len(claim_block_payload)))
-
-        print('Claim Block')
-        print('\tSuperbox')
-        print('\t\tLBox: {0}, TBox: {1}'.format(last_lbox, last_tbox))
-
-        print('\tDescription Box')
-        offset_d = 0
-        lbox_d = int.from_bytes(claim_block_payload[offset_d: offset_d + 4], byteorder='big')
-        tbox_d = claim_block_payload[offset_d + 4 : offset_d + 8].decode('utf-8')
-        print('\t\toffset: {}'.format(offset_d))
-        print('\t\tLBox: {0}, TBox: {1}'.format(lbox_d, tbox_d))
-        print('\t\tType: {}'.format(claim_block_payload[offset_d + 8 : offset_d + 24].hex()))
-        print('\t\tToggles: {}'.format(claim_block_payload[offset_d + 24 : offset_d + 25].hex()))
-        print('\t\tLabel: {}'.format(claim_block_payload[offset_d + 25 : lbox_d].decode('utf-8')))
-
-        print('\tContent Box (Stores)')
-        print('\t\tStore #1')
-        print('\t\tSuperbox')
-        offset_s = lbox_d
-        lbox_s = int.from_bytes(claim_block_payload[offset_s: offset_s + 4], byteorder='big')
-        tbox_s = claim_block_payload[offset_s + 4 : offset_s + 8].decode('utf-8')
-        print('\t\t\toffset: {}'.format(offset_s))
-        print('\t\t\tLBox: {0}, TBox: {1}'.format(lbox_s, tbox_s))
-        print('\t\tDescription Box')
-        offset_d = offset_s + 8
-        lbox_d = int.from_bytes(claim_block_payload[offset_d: offset_d + 4], byteorder='big')
-        tbox_d = claim_block_payload[offset_d + 4 : offset_d + 8].decode('utf-8')
-        print('\t\t\toffset: {}'.format(offset_d))
-        print('\t\t\tLBox: {0}, TBox: {1}'.format(lbox_d, tbox_d))
-        print('\t\t\tType: {}'.format(claim_block_payload[offset_d + 8 : offset_d + 24].hex()))
-        print('\t\t\tToggles: {}'.format(claim_block_payload[offset_d + 24 : offset_d + 25].hex()))
-        print('\t\t\tLabel: {}'.format(claim_block_payload[offset_d + 25 : offset_d + lbox_d].decode('utf-8')))
-        print('\t\tContent Box')
-        offset_c = offset_d + lbox_d
-        lbox_c = int.from_bytes(claim_block_payload[offset_c: offset_c + 4], byteorder='big')
-        tbox_c = claim_block_payload[offset_c + 4 : offset_c + 8].decode('utf-8')
-        print('\t\t\toffset: {}'.format(offset_c))
-        print('\t\t\tLBox: {0}, TBox: {1}'.format(lbox_c, tbox_c))
-        print('\t\t\tType: {}'.format(claim_block_payload[offset_c + 8 : offset_c + 24].hex()))
-
-        print('\t\tStore #2')
-        print('\t\tSuperbox')
-        offset_s = offset_s + lbox_s
-        lbox_s = int.from_bytes(claim_block_payload[offset_s: offset_s + 4], byteorder='big')
-        tbox_s = claim_block_payload[offset_s + 4 : offset_s + 8].decode('utf-8')
-        print('\t\t\toffset: {}'.format(offset_s))
-        print('\t\t\tLBox: {0}, TBox: {1}'.format(lbox_s, tbox_s))
-        print('\t\tDescription Box')
-        offset_d = offset_s + 8
-        lbox_d = int.from_bytes(claim_block_payload[offset_d: offset_d + 4], byteorder='big')
-        tbox_d = claim_block_payload[offset_d + 4 : offset_d + 8].decode('utf-8')
-        print('\t\t\toffset: {}'.format(offset_d))
-        print('\t\t\tLBox: {0}, TBox: {1}'.format(lbox_d, tbox_d))
-        print('\t\t\tType: {}'.format(claim_block_payload[offset_d + 8 : offset_d + 24].hex()))
-        print('\t\t\tToggles: {}'.format(claim_block_payload[offset_d + 24 : offset_d + 25].hex()))
-        print('\t\t\tLabel: {}'.format(claim_block_payload[offset_d + 25 : offset_d + lbox_d].decode('utf-8')))
-
-        print('\t\tStore #3 (newly created)')
-        print('\t\tSuperbox')
         store_bytes = cai_store.convert_bytes()
-        offset_s = 0
-        lbox_s = int.from_bytes(store_bytes[offset_s: offset_s + 4], byteorder='big')
-        tbox_s = store_bytes[offset_s + 4 : offset_s + 8].decode('utf-8')
-        print('\t\t\toffset: {}'.format(offset_s))
-        print('\t\t\tLBox: {0}, TBox: {1}'.format(lbox_s, tbox_s))
-        print('\t\tDescription Box')
-        offset_d = offset_s + 8
-        lbox_d = int.from_bytes(store_bytes[offset_d: offset_d + 4], byteorder='big')
-        tbox_d = store_bytes[offset_d + 4 : offset_d + 8].decode('utf-8')
-        print('\t\t\tLBox: {0}, TBox: {1}'.format(lbox_d, tbox_d))
-        print('\t\t\tType: {}'.format(store_bytes[offset_d + 8 : offset_d + 24].hex()))
-        print('\t\t\tToggles: {}'.format(store_bytes[offset_d + 24 : offset_d + 25].hex()))
-        print('\t\t\tLabel: {}'.format(store_bytes[offset_d + 25 : offset_d + lbox_d].decode('utf-8')))
 
         # append new Store bytes
         updated_claim_block_payload = claim_block_payload + store_bytes
         updated_lbox = last_lbox + len(store_bytes)
-        #updated_tbox = last_tbox
         updated_claim_block_bytes = updated_lbox.to_bytes(4, byteorder='big') + b'jumb' + updated_claim_block_payload
         updated_app11_segment = App11Box(en=last_en)
         updated_app11_segment.payload = updated_claim_block_bytes
 
         update_range_s = app11_headers[1]['offset']
         update_range_e = app11_headers[1]['offset'] + last_lbox + 16
-        print('Update range: {0} - {1}'.format(update_range_s, update_range_e))
 
+        # save CAI-injected media
         if len(args.inject) > 0:
             fname, fext = os.path.splitext(args.inject)
             fpath = fname + '-cai' + fext
@@ -244,13 +171,20 @@ def main():
                 cai_data_bytes = insert_xmp_key(data_bytes, store_label=store_label)
                 f.write(cai_data_bytes)
     else:
+        # create a new Store
+        cai_store = CaiStore(label=store_label,
+                             assertions=assertions,
+                             recorder=recorder,
+                             parent_claim=parent_claim,
+                             key=key)
+
         # create a new Claim Block Box
         cai_claim_block = CaiClaimBlock()
         cai_claim_block.content_boxes.append(cai_store)
         cai_segment = App11Box()
         cai_segment.payload = cai_claim_block.convert_bytes()
 
-        # inject CAI metadata
+        # save CAI-injected media
         if len(args.inject) > 0:
             fname, fext = os.path.splitext(args.inject)
             fpath = fname + '-cai' + fext
@@ -259,12 +193,10 @@ def main():
                 cai_data_bytes = insert_xmp_key(data_bytes, store_label=store_label)
                 f.write(cai_data_bytes)
 
-    # output CAI metadata
-    #if len(args.output) == 0:
-    #    print(cai_segment.convert_bytes().hex())
-    #else:
-    #    with open(args.output, 'w') as f:
-    #        f.write(cai_segment.convert_bytes().hex())
+    # save CAI metadata
+    if len(args.output) > 0:
+        with open(args.output, 'w') as f:
+            f.write(cai_segment.convert_bytes().hex())
 
 
 if __name__ == "__main__":

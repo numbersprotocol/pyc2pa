@@ -168,7 +168,6 @@ class App11Box(object):
             length = 2 + len(ci) + len(en) + len(z) + len(superbox)
             le = length.to_bytes(2, byteorder='big')
             total_bytes += marker + le + ci + en + z + superbox
-            print('current_z:', current_z)
             current_z += 1
         return total_bytes
 
