@@ -124,8 +124,13 @@ def main():
         with open(key_filepath, 'rb') as f:
             if type_sig=='cms':
                 key = f.read()
-            if type_sig=='endesive':
+            elif type_sig=='endesive':
+                # load_key_and_certificates second parameter is password to decrypt the data. Can be set to None of PKCS12 is not encrypted
+                # https://cryptography.io/en/latest/hazmat/primitives/asymmetric/serialization.html
                 key = pkcs12.load_key_and_certificates(f.read(), b'1234', backends.default_backend())
+            else:
+                raise Exception(
+                    'Unknown signature type {0}'.format(type_sig))
     else:
         key = []
 
