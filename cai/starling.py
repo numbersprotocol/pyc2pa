@@ -30,6 +30,9 @@ from cai.jumbf import create_json_superbox
 from cai.jumbf import get_app11_marker_segment_headers
 from cai.jumbf import json_to_bytes
 
+from cryptography.hazmat import backends
+from cryptography.hazmat.primitives.serialization import pkcs12
+
 '''Starling CLI tool to generate CAI metadata.
 '''
 
@@ -55,6 +58,10 @@ def parse_args():
         default='',
         help='Private key filepath.')
     ap.add_argument(
+        '-s', '--sig',
+        default='cms',
+        help='cms or endesive')
+    ap.add_argument(
         '-o', '--output',
         default='',
         help='Save CAI metadata to the filepath.')
@@ -78,12 +85,14 @@ def main():
     store_label = args.store_label
     recorder = args.recorder
     key_filepath = args.key
+    type_sig = args.sig
 
     if args.debug:
         print(args)
         print(assertion_filepaths)
         print(assertion_labels)
         print(store_label)
+        print(type_sig)
 
     # read media content if injection is enabled
     with open(args.inject, 'rb') as f:
@@ -113,7 +122,10 @@ def main():
     # private key for signature
     if key_filepath != '':
         with open(key_filepath, 'rb') as f:
-            key = f.read()
+            if type_sig=='cms':
+                key = f.read()
+            if type_sig=='endesive':
+                key = pkcs12.load_key_and_certificates(f.read(), b'1234', backends.default_backend())
     else:
         key = []
 
@@ -136,7 +148,8 @@ def main():
                              assertions=assertions,
                              recorder=recorder,
                              parent_claim=parent_claim,
-                             key=key)
+                             key=key,
+                             sig=type_sig)
 
         # get last segment header information
         header_number = len(app11_headers)
@@ -176,7 +189,8 @@ def main():
                              assertions=assertions,
                              recorder=recorder,
                              parent_claim=parent_claim,
-                             key=key)
+                             key=key,
+                             sig=type_sig)
 
         # create a new Claim Block Box
         cai_claim_block = CaiClaimBlock()
