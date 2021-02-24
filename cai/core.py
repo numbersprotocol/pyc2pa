@@ -161,7 +161,7 @@ class CaiClaimEndesiveSignature(SuperBox):
         content_box = ContentBox(t_box_type='uuid')
         content_box.payload = self.create_endesive_signature(claim, key)
         self.content_boxes.append(content_box)
-    
+
     def create_endesive_signature(self, claim, key):
         uuid = Cai_content_types['claim_signature']
         data = json_to_bytes(claim)

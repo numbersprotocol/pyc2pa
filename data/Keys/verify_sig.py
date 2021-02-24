@@ -11,6 +11,6 @@ def main():
 
     print('signature ok?', signatureok)
     print('hash ok?', hashok)
-    
+
 if __name__ == "__main__":
-    main() 
+    main()
