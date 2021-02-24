@@ -165,10 +165,9 @@ class CaiClaimEndesiveSignature(SuperBox):
     def create_endesive_signature(self, claim, key):
         uuid = Cai_content_types['claim_signature']
         data = json_to_bytes(claim)
-        siguature = plain.sign(data, key[0], key[1], key[2], 'sha256', attrs=True)
-        payload = bytes.fromhex(uuid) + siguature
+        signature = plain.sign(data, key[0], key[1], key[2], 'sha256', attrs=True)
+        payload = bytes.fromhex(uuid) + signature
         return payload
-
 
 class CaiClaimCMSSignature(SuperBox):
     def __init__(self, claim, key):
