@@ -31,10 +31,10 @@ setup(
     packages=find_packages(exclude=['tests']),
     install_requires=[
         'py-multibase>=1.0.3',
-        'pycryptodome',
+        'pycryptodome>=3.9.9',
         'pymultihash>=0.8.2',
         'py3exiv2>=0.9.3',
-        'endesive',
+        'endesive>=2.0.2',
         #'tox',
     ],
     python_requires='>=3',
