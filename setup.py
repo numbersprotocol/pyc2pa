@@ -1,8 +1,13 @@
 import subprocess
+
 from setuptools import setup
 from setuptools import find_packages
+
+
 with open("README.md", "r") as f:
     long_description = f.read()
+
+
 setup(
     name='cai',
     version='v1.2.1',
