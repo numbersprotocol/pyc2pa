@@ -1,13 +1,8 @@
 import subprocess
-
 from setuptools import setup
 from setuptools import find_packages
-
-
 with open("README.md", "r") as f:
     long_description = f.read()
-
-
 setup(
     name='cai',
     version='v1.2.1',
@@ -31,9 +26,10 @@ setup(
     packages=find_packages(exclude=['tests']),
     install_requires=[
         'py-multibase>=1.0.3',
-        'pycrypto>=2.6.1',
+        'pycryptodome',
         'pymultihash>=0.8.2',
         'py3exiv2>=0.9.3',
+        'endesive',
         #'tox',
     ],
     python_requires='>=3',
