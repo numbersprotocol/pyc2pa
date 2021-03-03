@@ -6,7 +6,9 @@
 
 In command line run: 
 
-`python cai/starling.py [-a ASSERTION] [--store-label STORE_LABEL] [--recorder RECORDER] [-k KEY] [-s SIG] [-o OUTPUT] [-i INJECT]`
+```
+python cai/starling.py [-a ASSERTION] [--store-label STORE_LABEL] [--recorder RECORDER] [-k KEY] [-s SIG] [-o OUTPUT] [-i INJECT]
+```
 
 ## Signature Verification
 
