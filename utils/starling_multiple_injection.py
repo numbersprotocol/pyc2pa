@@ -1,16 +1,16 @@
 #!/usr/bin/python3
 #
-# Starling Hello World Example.
+# Starling Hello World Example for multi-injection.
 #
-# This program will download an photo from IPFS and run CAI injection.
+# This program will inject 3 CAI Stores.
 #
 # Usage
-#     $ python3 starling_hello_world.py
+#     $ python3 starling_multiple_injection.py <image-filepath>
 #
 # Verify
 #     1. Go to https://verify.contentauthenticity.org/inspect
-#     2. Drag and drop the generated meimei-fried-chicken.jpg
-#     3. The webpage will show the CAI information
+#     2. Drag and drop the generated image.
+#     3. The webpage will show the CAI information.
 
 import os
 import sys
