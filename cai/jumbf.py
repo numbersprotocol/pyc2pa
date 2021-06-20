@@ -210,12 +210,18 @@ def get_app11_marker_segment_headers(data_bytes):
     offsets = [m.start() for m in re.finditer(marker, data_bytes)]
     headers = {}
     for offset in offsets:
-        # WORKAROUND: Reduce the probability to treat non-CAI data as
-        #             CAI metadata.
-        # check if the CI parameter equals to 0x4A50 (ASCII: 'J' 'P')
-        if data_bytes[offset + 4] != 0x4A or data_bytes[offset + 5] != 0x50:
-            continue
-        else:
+        try:
+            ci = data_bytes[offset + 4 : offset + 6].decode('utf-8')
+        except Exception as e:
+            print('Find App11 marker, and fail to get CI')
+            ci = None
+        try:
+            tbox = data_bytes[offset + 16 : offset + 20].decode('utf-8')
+        except Exception as e:
+            print('Find App11 marker, and fail to get TBox')
+            tbox = None
+
+        if ci == 'JP' and tbox == 'jumb':
             header = {}
             header['le']     = int.from_bytes(data_bytes[offset + 2 : offset + 4], byteorder='big')
             header['ci']     = data_bytes[offset + 4 : offset + 6].decode('utf-8')
@@ -228,4 +234,6 @@ def get_app11_marker_segment_headers(data_bytes):
             # passive protection to skip illegal or empty segment
             if header['le'] > 10:
                 headers[header['z']] = header
+        else:
+            print('Unknown CI ({0}) or TBox ({1}) of offset {2}'.format(ci, tbox, hex(offset)))
     return headers

@@ -125,6 +125,14 @@ class Starling(object):
         return cai_data_bytes
 
     def multiple_claims_injection(self):
+        """Re-create a new Claim Block.
+        The high-levle idea is to
+        1. Re-construct current Claim Block by
+           concatenating the payloads in the App11 segments.
+        2. Append the new Store into the Claim Block.
+        3. Re-create App11 segments based on the updated Claim Block.
+        4. Replace the old App11 segments by the new App11 segments.
+        """
         # generate acquisition assertion
         acquisition_assertion = {
             'dc:format': 'image/jpeg',
@@ -153,6 +161,9 @@ class Starling(object):
 
         # re-construct Claim Block payload
         claim_block_payload = bytearray()
+        ## App11 Length of Marker Segment (the Le parameter) value is 8 ~ 65535.
+        ## App11 Packet Sequence number (the Z parameter) value is 1 ~ 2^32-1.
+        ## The Claim Block maximum size will be ~= 2^48 B ~= 280 TB.
         for i in range(1, header_number + 1):
             payload_start = self.app11_headers[i]['offset'] + 20
             payload_end = payload_start + (self.app11_headers[i]['le'] - 18)
@@ -167,8 +178,24 @@ class Starling(object):
         updated_app11_segment = App11Box(en=last_en)
         updated_app11_segment.payload = updated_claim_block_bytes
 
+        ## Assuming that current CAI data consists of 3 App11 segments.
+        ##
+        ## +-- starting point
+        ## v
+        ## +-------+----+----+------+-----+------+------+-------------------------------+
+        ## | APP11 | Le | CI | En=1 | Z=1 | LBox | TBox | Payload (Claim Block, part 1) |
+        ## +-------+----+----+------+-----+------+------+-------------------------------+
+        ## | APP11 | Le | CI | En=1 | Z=2 | LBox | TBox | Payload (Claim Block, part 2) |
+        ## +-------+----+----+------+-----+------+------+-------------------------------+
+        ## | APP11 | Le | CI | En=1 | Z=3 | LBox | TBox | Payload (Claim Block, part 3) |
+        ## +-------+----+----+------+-----+------+------+-------------------------------+
+        ##                                                                              ^
+        ##                                                               ending point --+
+        ##
+        ## starting point of current CAI data
         update_range_s = self.app11_headers[1]['offset']
-        update_range_e = self.app11_headers[1]['offset'] + last_lbox + 16
+        ## ending point of current CAI data
+        update_range_e = self.app11_headers[header_number]['offset'] + self.app11_headers[header_number]['le'] + 2
 
         # save CAI-injected media
         data_bytes = self.raw_bytes[:update_range_s] + updated_app11_segment.convert_bytes() + self.raw_bytes[update_range_e:]
