@@ -1,6 +1,8 @@
 import re
+import sys
 
-img = '/home/bafu/Downloads/multiple-claims.jpg'
+
+img = sys.argv[1]
 
 f = open(img, 'rb').read()
 
