@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.2] - 2021-06-20
+### Fixed
+- #12 Doing multi-injection multiple times causes the injected image to be corrupted.
+
 ## [1.3.1] - 2021-05-19
 ### Fixed
 - Workaround to reduce the probability to treat non-CAI data as CAI metadata.
@@ -22,7 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Section about "changelog" vs "CHANGELOG".
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v1.3.1...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v1.3.2...HEAD
+[1.3.2]: https://github.com/numbersprotocol/starling-cai/compare/v1.3.0...v1.3.2
 [1.3.1]: https://github.com/numbersprotocol/starling-cai/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/numbersprotocol/starling-cai/compare/v1.2.1...v1.3.0
 [1.2.1]: https://github.com/numbersprotocol/starling-cai/compare/v1.2.0...v1.2.1
