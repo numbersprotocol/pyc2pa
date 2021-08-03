@@ -50,23 +50,23 @@ Cai_content_types = {
 
 Claim_asset_hashes_mockup = [
         {
-            'start': '0x0000000000000000',
             'length': '0x0000000000009959',
             'name': 'JFIF SOI-APP0',
+            'start': '0x0000000000000000',
             'url': '',
             'value': 'EiAuxjtmax46cC2N3Y9aFmBO9Jfay8LEwJWzBUtZ0sUM8gA='
         },
         {
-            'start': '0x0000000000009959',
             'length': '0x000000000000027d',
             'name': 'JFIF APP1/XMP',
+            'start': '0x0000000000009959',
             'url': '',
             'value': 'EiDjZifCgG2iKxcYeChKTOcWlJ9I/UC9/c5XFiJREqJFpwA='
         },
         {
-            'start': '0x000000000000a90c',
             'length': '0x00000000000215e6',
             'name': 'JFIF DQT-EOI',
+            'start': '0x000000000000a90c',
             'url': '',
             'value': 'EiArx031oA0N5KOEG6n9R/bJJFYJvmGlDoLtuwbRipLTKAA='
         }
@@ -137,8 +137,6 @@ class CaiClaim(SuperBox):
         '''Create a Claim JSON object
         '''
         claim = {}
-        claim['recorder'] = recorder
-        claim['signature'] = 'self#jumbf=cai/{}/cai.signature'.format(store_label)
         claim['assertions'] = [
             'self#jumbf=cai/{store_label}/cai.assertions/{assertion_label}?hl={hashlink}'.format(
                 store_label=store_label,
@@ -148,6 +146,8 @@ class CaiClaim(SuperBox):
             for assertion in assertion_store.content_boxes
         ]
         claim['asset_hashes'] = Claim_asset_hashes_mockup
+        claim['recorder'] = recorder
+        claim['signature'] = 'self#jumbf=cai/{}/cai.signature'.format(store_label)
         if parent_claim != '':
             claim['parent_claim'] = parent_claim
         return claim
