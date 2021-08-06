@@ -21,12 +21,14 @@ from cai.starling import Starling
 
 
 # single-claim injection
-photo_url = 'https://ipfs.io/ipfs/QmaaqwP1p71b118uNnHCvQTtywu1tK1H5LEjT6wWi8c5o2'
-photo_filename = 'meimei-fried-chicken.jpg'
+# photo_url = 'https://ipfs.io/ipfs/QmaaqwP1p71b118uNnHCvQTtywu1tK1H5LEjT6wWi8c5o2'
+# photo_filename = 'meimei-fried-chicken.jpg'
+photo_url = 'https://http.cat/404'
+photo_filename = '404.jpg'
 
 # multi-claim injection
-#photo_url = 'https://ipfs.io/ipfs/QmPa8Dokcjcouv1KYrXn1cYA6XLACDBPVmnaMZ4un8K54L'
-#photo_filename = 'meimei-nbj.jpg'
+# photo_url = 'https://ipfs.io/ipfs/QmPa8Dokcjcouv1KYrXn1cYA6XLACDBPVmnaMZ4un8K54L'
+# photo_filename = 'meimei-nbj.jpg'
 
 photo_bytes = requests.get(photo_url).content
 
@@ -34,26 +36,26 @@ assertions = {
     'adobe.asset.info': {
         'type': '.json',
         'data_bytes': json_to_bytes({
-            'title': 'meimei-nbj.jpg'
+            'title': '404-cat.jpg'
         })
     },
-    'cai.location.broad': {
+    'c2pa.location.broad.v1': {
         'type': '.json',
         'data_bytes': json_to_bytes({
-            'location': 'Dogworld, Taipei Taiwan'
+            'location': 'Somewhere on the Internet'
         })
     },
-    'cai.rights': {
+    'c2pa.rights.v1': {
         'type': '.json',
         'data_bytes': json_to_bytes({
-            'copyright': 'Tammy Yang'
+            'copyright': 'http.cat'
         })
     },
-    'cai.claim.thumbnail.jpg.jpg': {
+    'c2pa.claim.thumbnail.jpg.jpg': {
         'type': '.jpg',
         'data_bytes': photo_bytes
     },
-    'cai.acquisition.thumbnail.jpg.jpg': {
+    'c2pa.acquisition.thumbnail.jpg.jpg': {
         'type': '.jpg',
         'data_bytes': photo_bytes
     },
@@ -77,14 +79,19 @@ assertions = {
     }
 }
 
+with open('data/Keys/Privkey.out', 'r') as f:
+    private_key = f.read()
+
+# TODO: Change the name of recorder as the format:
+# https://datatracker.ietf.org/doc/html/rfc7231#section-5.5.3
 starling = Starling(photo_bytes,
                     photo_filename,
                     assertions,
-                    'cb.numbersprotocol_1',
+                    'numbersprotocol',
                     'Capture App: 5c2cefaa-fb4e-4d77-991c-5046729b295f',
-                    '',
-                    '')
-starling_cai_bytes = starling.cai_injection()
+                    private_key,
+                    'cms')
+starling_cai_bytes = starling.c2pa_injection()
 
 fname, fext = os.path.splitext(photo_filename)
 fpath = fname + '-cai' + fext
