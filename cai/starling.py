@@ -18,9 +18,11 @@
 import argparse
 import os
 
-from cai.core import CaiClaimBlock
-from cai.core import CaiClaimCMSSignature
-from cai.core import CaiStore
+from cryptography.hazmat import backends
+from cryptography.hazmat.primitives.serialization import pkcs12
+
+from cai.core import C2paManifestBlock
+from cai.core import C2paManifest
 from cai.jumbf import App11Box
 
 from cai.core import get_xmp_tag
@@ -30,9 +32,6 @@ from cai.jumbf import create_json_superbox
 from cai.jumbf import get_app11_marker_segment_headers
 from cai.jumbf import json_to_bytes
 
-from cryptography.hazmat import backends
-from cryptography.hazmat.primitives.serialization import pkcs12
-
 '''Starling CLI tool to generate CAI metadata.
 '''
 
@@ -41,7 +40,7 @@ class Starling(object):
                  media_bytes,
                  media_name,
                  raw_assertions,
-                 store_label,
+                 provider,
                  recorder,
                  private_key='',
                  signature_standard='cms'):
@@ -51,7 +50,7 @@ class Starling(object):
         raw_assertions: dict of assertion JSON objects, and keys are labels.
             refer to create_assertions for the details.
 
-        store_label: Example: cb.starling_1
+        provider: Example: numbersprotocol
 
         recorder: The recorder field in Claim.
 
@@ -64,7 +63,7 @@ class Starling(object):
         self.raw_bytes = media_bytes
         self.media_name = media_name
         self.assertions = self.create_assertions(raw_assertions)
-        self.store_label = store_label
+        self.provider = provider
         self.recorder = recorder
         self.private_key = private_key
         self.signature_standard = signature_standard
@@ -104,24 +103,25 @@ class Starling(object):
                     'Unknown assertion type {0} from {1}'.format(assertion_type, label))
         return assertions
 
-    def signel_claim_injection(self):
-        # create a new Store
-        cai_store = CaiStore(label=self.store_label,
-                             assertions=self.assertions,
-                             recorder=self.recorder,
-                             parent_claim=self.parent_claim,
-                             key=self.private_key,
-                             sig=self.signature_standard)
+    def single_claim_injection(self):
+        # create a new manifest
+        c2pa_manifest = C2paManifest(provider=self.provider,
+                                     assertions=self.assertions,
+                                     recorder=self.recorder,
+                                     parent_claim=self.parent_claim,
+                                     key=self.private_key,
+                                     sig=self.signature_standard)
+        self.manifest_label = c2pa_manifest.manifest_label
 
         # create a new Claim Block Box
-        cai_claim_block = CaiClaimBlock()
-        cai_claim_block.content_boxes.append(cai_store)
-        cai_segment = App11Box()
-        cai_segment.payload = cai_claim_block.convert_bytes()
+        c2pa_manifest_block = C2paManifestBlock()
+        c2pa_manifest_block.content_boxes.append(c2pa_manifest)
+        c2pa_segment = App11Box()
+        c2pa_segment.payload = c2pa_manifest_block.convert_bytes()
 
         # save CAI-injected media
-        data_bytes = self.raw_bytes[0:2] + cai_segment.convert_bytes() + self.raw_bytes[2:]
-        cai_data_bytes = insert_xmp_key(data_bytes, store_label=self.store_label)
+        data_bytes = self.raw_bytes[0:2] + c2pa_segment.convert_bytes() + self.raw_bytes[2:]
+        cai_data_bytes = insert_xmp_key(data_bytes, manifest_label=self.manifest_label)
         return cai_data_bytes
 
     def multiple_claims_injection(self):
@@ -140,19 +140,20 @@ class Starling(object):
             'dcterms:provenance': self.parent_claim,
             'stRef:DocumentID': 'xmp:fakeid:39afb1d3-7f8c-44e6-b771-85e0d9adb377',
             'stRef:InstanceID': 'xmp:fakeid:10c04858-d3fd-4e2c-8947-7f1e29d62fbe',
-            'thumbnail': 'self#jumbf=cai/{}/cai.assertions/cai.acquisition.thumbnail.jpeg'.format(self.store_label)
+            'thumbnail': 'self#jumbf=cai/{}/cai.assertions/cai.acquisition.thumbnail.jpeg'.format(self.manifest_label)
         }
         self.assertions.append(create_json_superbox(
             content=json_to_bytes(acquisition_assertion),
-            label='cai.acquisition_1'))
+            label='cai.acquisition.v1'))
 
         # create a new Store
-        cai_store = CaiStore(label=self.store_label,
-                             assertions=self.assertions,
-                             recorder=self.recorder,
-                             parent_claim=self.parent_claim,
-                             key=self.private_key,
-                             sig=self.signature_standard)
+        c2pa_manifest = C2paManifest(provider=self.provider,
+                                     assertions=self.assertions,
+                                     recorder=self.recorder,
+                                     parent_claim=self.parent_claim,
+                                     key=self.private_key,
+                                     sig=self.signature_standard)
+        self.manifest_label = c2pa_manifest.manifest_label
 
         # get last segment header information
         header_number = len(self.app11_headers)
@@ -169,7 +170,7 @@ class Starling(object):
             payload_end = payload_start + (self.app11_headers[i]['le'] - 18)
             payload = self.raw_bytes[payload_start : payload_end]
             claim_block_payload += payload
-        store_bytes = cai_store.convert_bytes()
+        store_bytes = c2pa_manifest.convert_bytes()
 
         # append new Store bytes
         updated_claim_block_payload = claim_block_payload + store_bytes
@@ -199,15 +200,15 @@ class Starling(object):
 
         # save CAI-injected media
         data_bytes = self.raw_bytes[:update_range_s] + updated_app11_segment.convert_bytes() + self.raw_bytes[update_range_e:]
-        cai_data_bytes = insert_xmp_key(data_bytes, store_label=self.store_label)
-        return cai_data_bytes
+        c2pa_data_bytes = insert_xmp_key(data_bytes, manifest_label=self.manifest_label)
+        return c2pa_data_bytes
 
-    def cai_injection(self):
+    def c2pa_injection(self):
         if self.has_app11_headers:
-            cai_data_bytes = self.multiple_claims_injection()
+            c2pa_data_bytes = self.multiple_claims_injection()
         else:
-            cai_data_bytes = self.signel_claim_injection()
-        return cai_data_bytes
+            c2pa_data_bytes = self.single_claim_injection()
+        return c2pa_data_bytes
 
 
 def parse_args():
@@ -220,9 +221,9 @@ def parse_args():
         action='append',
         default=[])
     ap.add_argument(
-        '--store-label',
-        default='cb.starling_1',
-        help='Store label. Default: cb.starling_1')
+        '--provider',
+        default='numbersprotocol',
+        help='Manifest provider. Default: numbersprotocol')
     ap.add_argument(
         '--recorder',
         default='Starling Capture',
@@ -252,7 +253,7 @@ def main():
     assertion_filepaths = args.assertion
     assertion_labels = [os.path.splitext(os.path.basename(a))[0]
                         for a in assertion_filepaths]
-    store_label = args.store_label
+    provider = args.provider
     recorder = args.recorder
     key_filepath = args.key
     type_sig = args.sig
@@ -261,7 +262,7 @@ def main():
         print(args)
         print(assertion_filepaths)
         print(assertion_labels)
-        print(store_label)
+        print(provider)
         print(type_sig)
 
     # read media content if injection is enabled
@@ -299,11 +300,11 @@ def main():
     starling = Starling(raw_bytes,
                         os.path.basename(args.inject),
                         raw_assertions,
-                        store_label,
+                        provider,
                         recorder,
                         key,
                         type_sig)
-    starling_cai_bytes = starling.cai_injection()
+    starling_cai_bytes = starling.c2pa_injection()
 
     # save CAI-injected media
     if len(args.inject) > 0:
@@ -314,4 +315,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()   
+    main()

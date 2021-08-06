@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with starling-cai.  If not, see <http://www.gnu.org/licenses/>.
 
+import cbor
 import json
 import re
 
@@ -29,6 +30,7 @@ Jumbf_content_types = {
     'xml'       : '786d6c2000110010800000aa00389b71',
     'json'      : '6a736f6e00110010800000aa00389b71',
     'uuid'      : '7575696400110010800000aa00389b71',
+    'cbor'      : '63626f7200110010800000aa00389b71',
 }
 
 
@@ -193,16 +195,28 @@ def create_json_superbox(content=b'', label=''):
         label=label)
 
 
+def create_cbor_superbox(content=b'', label=''):
+    return create_single_content_superbox(
+        content=content,
+        t_box_type='cbor',
+        content_type=Jumbf_content_types['cbor'],
+        label=label)
+
+
 def create_codestream_superbox(content=b'', label=''):
     return create_single_content_superbox(
         content=content,
-        t_box_type='jp2c',
+        t_box_type='bfdb',
         content_type=Jumbf_content_types['codestream'],
         label=label)
 
 
 def json_to_bytes(json_object):
     return json.dumps(json_object, separators=(',',':')).encode('utf-8')
+
+
+def json_to_cbor_bytes(json_object):
+    return cbor.dumps(json_object, separators=(',',':'))
 
 
 def get_app11_marker_segment_headers(data_bytes):
