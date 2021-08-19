@@ -171,3 +171,33 @@ Code Stream Parser Output:
             6d 99 c2 ca 6c f9 ca a6 7f 41 bb 96 b4 8d e4 50    m...l....A.....P
             81 bb e4 96 c4 ed 91 31 aa 17 c1 45 07 1f 59 11    .......1...E..Y.
 ```
+
+### Adobe Way to Verify Signature
+
+```
+# Extract claim to signed-claim.json
+# Extract signature to starling-signed.der
+
+-----
+# Verify SHA-1 Hash
+$ openssl sha1 signed-claim.json
+SHA1(signed-claim.json)= de6417bdb2b9374a3ad42d34cb5bf6c017aa5eb7
+
+# Verify file size
+$ ls -al signed-claim.json
+-rw-r--r--  1 macuser  staff  1627 Mar  2 09:53 signed-claim.json
+
+-----
+# Verify Signature
+
+# 1. Convert Signature from DER to PEM encoding
+$ openssl pkcs7 -inform der -in starling-signed.der -out starling.der.pkcs7
+
+# 2. Extract X.509 certificate from signature
+$ openssl pkcs7 -print_certs -in starling.der.pkcs7 -out starling.der.cert
+
+# 3. Verify CMS Signature against detached data (claim)
+$ openssl smime -verify -binary -inform der -in starling-signed.der -content signed-claim.json -certfile starling.der.cert -noverify
+Verification successful
+{"assertions":["self#jumbf=cai/cb.starling_1/cai.assertions/adobe.asset.info?hl=mEiCm/aYUgYWjwC0emm90PWK2qxpbXxqC6/bMJMkKevY1LA","self#jumbf=cai/cb.starling_1/cai.assertions/cai.acquisition.thumbnail.jpg?hl=mEiCE0uHOfHV7htFrlpSi3L3Mvjah1yqcbvsUjniRxHxvqg","self#jumbf=cai/cb.starling_1/cai.assertions/cai.claim.thumbnail.jpg?hl=mEiCE0uHOfHV7htFrlpSi3L3Mvjah1yqcbvsUjniRxHxvqg","self#jumbf=cai/cb.starling_1/cai.assertions/cai.location.broad?hl=mEiAiWeYKpcrzcEZUwo1l1J09GPElaDfnEarwHnJvlAh/oA","self#jumbf=cai/cb.starling_1/cai.assertions/cai.rights?hl=mEiDz9sNp/tzDru0T9PjM6InZBzjMLlg0XX6kYTbs8DtdJw","self#jumbf=cai/cb.starling_1/cai.assertions/starling.device?hl=mEiBti71cp2yyhOgbeqqXlcGa3IxsEeCIlG1hF69hafp43w","self#jumbf=cai/cb.starling_1/cai.assertions/starling.integrity?hl=mEiBX5zocwF840JwzsiC+LHPubE9MTn93t8utThK/kguMsg","self#jumbf=cai/cb.starling_1/cai.assertions/starling.location.precise?hl=mEiDOn7ELvwlJq0A1S+E0ZvsmjZv79QMEfGUeL/ypYEDMcw","self#jumbf=cai/cb.starling_1/cai.assertions/starling.sensors?hl=mEiApTQ+MSKK+o0vjuURm11/7phdMygI8Nl/wjgFtWO64YQ"],"asset_hashes":[{"length":"0x0000000000009959","name":"JFIF SOI-APP0","start":"0x0000000000000000","url":"","value":"EiAuxjtmax46cC2N3Y9aFmBO9Jfay8LEwJWzBUtZ0sUM8gA="},{"length":"0x000000000000027d","name":"JFIF APP1/XMP","start":"0x0000000000009959","url":"","value":"EiDjZifCgG2iKxcYeChKTOcWlJ9I/UC9/c5XFiJREqJFpwA="},{"length":"0x00000000000215e6","name":"JFIF DQT-EOI","start":"0x000000000000a90c","url":"","value":"EiArx031oA0N5KOEG6n9R/bJJFYJvmGlDoLtuwbRipLTKAA="}],"recorder":"Starling Capture","signature":"self#jumbf=cai/cb.starling_1/cai.signature"}
+```
