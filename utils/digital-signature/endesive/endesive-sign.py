@@ -20,7 +20,7 @@ sign_f = sys.argv[4]
 def generate_signature(key, data, signed):
     print("Generating Signature")
     with open(key, 'rb') as fp:
-        p12 = pkcs12.load_key_and_certificates(fp.read(), b'1234', backends.default_backend())
+        p12 = pkcs12.load_key_and_certificates(fp.read(), b'', backends.default_backend())
     datau = open(data, 'rb').read()
     datas = plain.sign(datau,
         p12[0], p12[1], p12[2],
