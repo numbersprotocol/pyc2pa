@@ -288,7 +288,7 @@ def main():
             elif type_sig=='endesive':
                 # load_key_and_certificates second parameter is password to decrypt the data. Can be set to None of PKCS12 is not encrypted
                 # https://cryptography.io/en/latest/hazmat/primitives/asymmetric/serialization.html
-                key = pkcs12.load_key_and_certificates(f.read(), b'1234', backends.default_backend())
+                key = pkcs12.load_key_and_certificates(f.read(), b'', backends.default_backend())
             else:
                 raise Exception(
                     'Unknown signature type {0}'.format(type_sig))
