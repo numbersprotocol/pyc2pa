@@ -109,3 +109,72 @@ $ openssl smime -verify -binary -inform der -in starling.der -content starling.c
 Verification successful
 
 ```
+
+### Verifying signature from CAI file Tutorial
+
+1. Prepare p12 certificate
+
+**with password**
+
+```
+ openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 7
+ openssl pkcs12 -export -out <filename>.p12 -inkey key.pem -in cert.pem
+```
+
+**remove password**
+
+```
+# Export pkcs12 to pem
+$ openssl pkcs12 -in <filename>.p12 -nodes -out temp.pem
+Enter Import Password:
+MAC verified OK
+
+# convert pem back to p12 w/ no password (press space twice when prompted password)
+$ openssl pkcs12 -export -in temp.pem  -out <filename>.p12
+Enter Export Password:
+Verifying - Enter Export Password:
+
+#  remove temp certfiicate
+$ rm temp.pem
+```
+
+2. Generate Certificate for verification
+
+```
+openssl pkcs12 -in <filename>.p12 -out <filename>crt.pem -clcerts -nokeys
+```
+
+2. Create CAI-Injected Photo
+
+Add `p12` & `crt.pem` and run script `./run.sh <jpg filename>`
+
+You will get CAI-injected photo `filename-cai.jpg>`
+
+3. Get exact byte sequence of `claim JSON` and extract signature to `signature.der`
+
+4. Run verification w/script
+
+```
+$ python endesive-sign.py -v <filename>.crt.pem <claim json> signature.der 
+```
+
+Output
+
+```
+Verifying Signature
+signature ok? True
+hash ok? True
+cert ok? True
+```
+
+5. Run verification (Adobe Method)
+
+```
+$ openssl pkcs7 -inform der -in signature.der -out signature.der.pkcs7
+
+$ openssl pkcs7 -print_certs -in signature.der.pkcs7 -out signature.der.cert
+
+$ openssl smime -verify -binary -inform der -in signature.der -content <claim json> -certfile signature.der.cert -noverify
+```
+
+
