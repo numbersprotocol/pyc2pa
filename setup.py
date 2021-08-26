@@ -10,7 +10,7 @@ with open("README.md", "r") as f:
 
 setup(
     name='cai',
-    version='v1.3.2',
+    version='v1.3.3',
     description='Content Authenticity Initiative Implementation.',
     long_description=long_description,
     long_description_content_type="text/markdown",
