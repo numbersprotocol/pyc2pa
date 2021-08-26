@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.3.3] - 2021-08-26
+### Fixed
+- [#17](https://github.com/numbersprotocol/starling-cai/issues/17) Fail to pass signature verification
+
 ## [1.3.2] - 2021-06-20
 ### Fixed
 - [#12](https://github.com/numbersprotocol/starling-cai/issues/12) Doing multi-injection multiple times causes the injected image to be corrupted
@@ -27,7 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Section about "changelog" vs "CHANGELOG".
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v1.3.2...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v1.3.3...HEAD
+[1.3.3]: https://github.com/numbersprotocol/starling-cai/compare/v1.3.2...v1.3.3
 [1.3.2]: https://github.com/numbersprotocol/starling-cai/compare/v1.3.1...v1.3.2
 [1.3.1]: https://github.com/numbersprotocol/starling-cai/compare/v1.3.0...v1.3.1
 [1.3.0]: https://github.com/numbersprotocol/starling-cai/compare/v1.2.1...v1.3.0
