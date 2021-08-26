@@ -231,9 +231,19 @@ class CaiStore(SuperBox):
             self.signature = CaiClaimSignature()
         else:
             if sig == 'cms':
-                self.signature = CaiClaimCMSSignature(self.claim.create_claim(self.assertion_store), key)
+                self.signature = CaiClaimCMSSignature(
+                    self.claim.create_claim(
+                        self.assertion_store,
+                        recorder=recorder,
+                        parent_claim=parent_claim),
+                    key)
             elif sig == 'endesive':
-                self.signature = CaiClaimEndesiveSignature(self.claim.create_claim(self.assertion_store), key)
+                self.signature = CaiClaimEndesiveSignature(
+                    self.claim.create_claim(
+                        self.assertion_store,
+                        recorder=recorder,
+                        parent_claim=parent_claim),
+                    key)
             else:
                 self.signature = CaiClaimSignature()
         self.content_boxes.append(self.assertion_store)
