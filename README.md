@@ -16,7 +16,7 @@ PyC2PA is Python implementation of [C2PA](https://c2pa.org/) (Coalition for Cont
 ## Installation
 
 ```
-$ python3 -m pip install pyc2pa
+$ python3 -m pip install c2pa
 ```
 
 ## C2PA CLI
