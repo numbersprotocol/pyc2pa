@@ -9,12 +9,12 @@ with open("README.md", "r") as f:
 
 
 setup(
-    name='cai',
+    name='c2pa',
     version='v1.3.3',
-    description='Content Authenticity Initiative Implementation.',
+    description='Implementation of C2PA: Coalition for Content Provenance and Authenticity.',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='https://github.com/numbersprotocol.io/starling-cai',
+    url='https://github.com/numbersprotocol.io/pyc2pa',
     author='Numbers Inc.',
     author_email='dev@numbersprotocol.io',
     license='GPLv3',
@@ -35,13 +35,12 @@ setup(
         'pymultihash>=0.8.2',
         'py3exiv2>=0.9.3',
         'endesive>=2.0.2',
-        #'tox',
     ],
     python_requires='>=3',
     entry_points={
         'console_scripts': [
-            'cai_tool=cai.cai_tool:main',
-            'starling_cai=cai.starling:main',
+            'cai_tool=c2pa.cai_tool:main',
+            'c2pa=c2pa.starling:main',
         ]
     },
     test_suite='tests'

@@ -1,23 +1,42 @@
 #!/usr/bin/python3
+
+# Copyright 2020 Numbers Co., Ltd.
 #
-# Starling Hello World Example.
+# This file is part of pyc2pa.
 #
-# This program will download an photo from IPFS and run CAI injection.
+# pyc2pa is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-# Usage
-#     $ python3 starling_hello_world.py
+# pyc2pa is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-# Verify
-#     1. Go to https://verify.contentauthenticity.org/inspect
-#     2. Drag and drop the generated meimei-fried-chicken.jpg
-#     3. The webpage will show the CAI information
+# You should have received a copy of the GNU General Public License
+# along with pyc2pa.  If not, see <http://www.gnu.org/licenses/>.
+
+'''
+C2PA Hello World Example.
+
+This program will download an photo from IPFS and run CAI injection.
+
+Usage
+    $ python3 c2pa_hello_world.py
+
+Verify
+    1. Go to https://verify.contentauthenticity.org/inspect
+    2. Drag and drop the generated meimei-fried-chicken.jpg
+    3. The webpage will show the CAI information
+'''
 
 import os
 
 import requests
 
-from cai.jumbf import json_to_bytes
-from cai.starling import Starling
+from c2pa.jumbf import json_to_bytes
+from c2pa.starling import Starling
 
 
 # single-claim injection

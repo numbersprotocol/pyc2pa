@@ -1,34 +1,34 @@
 # Copyright 2020 Numbers Co., Ltd.
 #
-# This file is part of starling-cai.
+# This file is part of pyc2pa.
 #
-# starling-cai is free software: you can redistribute it and/or modify
+# pyc2pa is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# starling-cai is distributed in the hope that it will be useful,
+# pyc2pa is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with starling-cai.  If not, see <http://www.gnu.org/licenses/>.
+# along with pyc2pa.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
 import os
 
-from cai.core import CaiClaimBlock
-from cai.core import CaiClaimCMSSignature
-from cai.core import CaiStore
-from cai.jumbf import App11Box
+from c2pa.core import CaiClaimBlock
+from c2pa.core import CaiClaimCMSSignature
+from c2pa.core import CaiStore
+from c2pa.jumbf import App11Box
 
-from cai.core import get_xmp_tag
-from cai.core import insert_xmp_key
-from cai.jumbf import create_codestream_superbox
-from cai.jumbf import create_json_superbox
-from cai.jumbf import get_app11_marker_segment_headers
-from cai.jumbf import json_to_bytes
+from c2pa.core import get_xmp_tag
+from c2pa.core import insert_xmp_key
+from c2pa.jumbf import create_codestream_superbox
+from c2pa.jumbf import create_json_superbox
+from c2pa.jumbf import get_app11_marker_segment_headers
+from c2pa.jumbf import json_to_bytes
 
 from cryptography.hazmat import backends
 from cryptography.hazmat.primitives.serialization import pkcs12
