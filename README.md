@@ -1,6 +1,6 @@
 # PyC2PA
 
-![c2pa-concept-full](https://user-images.githubusercontent.com/292790/131794471-411556ae-3186-4a85-a62a-e30cc0a77764.jpg)
+![c2pa-concept-full](https://user-images.githubusercontent.com/292790/131808157-0ca62a79-c2f4-4e1d-b8b9-ef027476f4b0.jpg)
 (photo source: C2PA)
 
 PyC2PA is Python implementation of [C2PA](https://c2pa.org/) (Coalition for Content Provenance and Authenticity) addressing the prevalence of misleading information online through the development of technical standards for certifying the source and history (or provenance) of media content.
