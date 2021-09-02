@@ -16,6 +16,7 @@ PyC2PA is Python implementation of [C2PA](https://c2pa.org/) (Coalition for Cont
 ## Installation
 
 ```
+$ sudo apt install swig
 $ python3 -m pip install c2pa
 ```
 
