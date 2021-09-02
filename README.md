@@ -1,55 +1,51 @@
-# Starling CAI
+# PyC2PA
 
-## CAI-Tool use
+![c2pa-concept-full](https://user-images.githubusercontent.com/292790/131794471-411556ae-3186-4a85-a62a-e30cc0a77764.jpg)
+(photo source: C2PA)
 
-### Running CAI-Tool
+PyC2PA is Python implementation of [C2PA](https://c2pa.org/) (Coalition for Content Provenance and Authenticity) addressing the prevalence of misleading information online through the development of technical standards for certifying the source and history (or provenance) of media content.
 
-In command line run: 
+## Quick Trial
 
-```
-python cai/starling.py [-a ASSERTION] [--store-label STORE_LABEL] [--recorder RECORDER] [-k KEY] [-s SIG] [-o OUTPUT] [-i INJECT]
-```
+1. Download the testing photo: [meimei-fried-chicken-cai-cai-cai.jpg](![c2pa-concept-full](https://user-images.githubusercontent.com/292790/131794471-411556ae-3186-4a85-a62a-e30cc0a77764.jpg))
+1. Go to the [CAI verification website](https://verify.contentauthenticity.org/) and upload the photo.
+1. You should see the C2PA information like this:
+<img src="https://user-images.githubusercontent.com/292790/131798257-21159c2a-a958-431b-aaea-1649b27aaaaf.png" width=70%>
 
-## Signature Verification
-
-Current version of CAI-Tool has two signature implementations `cms` and `endesive`. 
-
-`cms` signature implementation outputs a 256-byte binary blob that is a raw style SHA-style signature. It is advised to not use `cms` for cai signature.
-
-`endesive` signature implementation is a CADES-B signature with DER encoding. It is currently advised to use `endesive` to sign CAI injected images.
-
-### Generating Certificate and Private Key
-
-Please run the following to generate certificate and private key for `endesive` signature.
+## Installation
 
 ```
-openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 7
+$ python3 -m pip install pyc2pa
 ```
 
-Generate pkcs12
+## C2PA CLI
+
+In command line run:
 
 ```
-openssl pkcs12 -export -out <filename>.p12 -inkey key.pem -in cert.pem 
+$ c2pa [-a ASSERTION] [--store-label STORE_LABEL] [--recorder RECORDER] [-k KEY] [-s SIG] [-o OUTPUT] [-i INJECT]
 ```
 
-Remove password for pkcs12
+Example: generate meimei-fried-chicken-cai.jpg containing single C2PA injection.
 
 ```
-# Export to temporary pem file
-openssl pkcs12 -in protected.p12 -nodes -out temp.pem
-#  -> Enter password
-
-# Convert pem back to p12
-openssl pkcs12 -export -in temp.pem  -out unprotected.p12
-# -> Just press [return] twice for no password
-
-# Remove temporary certificate
-rm temp.pem
-
+$ c2pa \
+    -a cai.location.broad.json \
+    -a cai.rights.json \
+    -a cai.claim.thumbnail.jpg.jpg \
+    -a cai.acquisition.thumbnail.jpg.jpg \
+    -a adobe.asset.info.json \
+    -a starling.integrity.json \
+    --recorder "Starling Capture using Numbers Protocol" \
+    --store-label "cb.starling_1" \
+    -k certificate.p12 \
+    -s endesive \
+    -i meimei-fried-chicken.jpg
 ```
 
-Generate crt.pem for verification purposes
+## For Developer
 
-```
-openssl pkcs12 -in <filename>.p12 -out <filename>crt.pem -clcerts -nokeys
-```
+1. Currently, the `main` branch is based on C2PA spec draft v0.5 (compatible with the [latest C2PA spec draft](https://c2pa.org/public-draft/)).
+2. The `feature-support-c2pa-photo` branch follows the latest C2PA spec implementation.
+3. `pyc2pa/utils/` contains examples of single injection and multiple injection.
+4. `pyc2pa/utils/digital-signature/` contains detailed documents and example codes how to create and verify a C2PA signature.
