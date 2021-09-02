@@ -10,11 +10,11 @@ with open("README.md", "r") as f:
 
 setup(
     name='c2pa',
-    version='v1.4.0',
+    version='v1.4.1',
     description='Implementation of C2PA: Coalition for Content Provenance and Authenticity.',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='https://github.com/numbersprotocol.io/pyc2pa',
+    url='https://github.com/numbersprotocol/pyc2pa',
     author='Numbers Inc.',
     author_email='dev@numbersprotocol.io',
     license='GPLv3',
