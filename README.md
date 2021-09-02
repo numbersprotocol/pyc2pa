@@ -44,7 +44,28 @@ $ c2pa \
     -i meimei-fried-chicken.jpg
 ```
 
-## For Developer
+## Quick Start
+
+In `pyc2pa/utils/`, there are two examples showing how to do single injection and multiple injection programmatically.
+
+```
+# Prepare testing input JPEG photo and its thumbnail.
+# Assuming that testing input JPEG is ~/meimei-fried-chicken.jpg
+$ cd pyc2pa/utils/
+$ cp ~/meimei-fried-chicken.jpg .
+$ convert -resize 50% meimei-fried-chicken.jpg meimei-fried-chicken-thumbnail.jpg
+
+# Run single injection example
+# (download meimei-fried-chicken-cai.jpg from IPFS)
+# output: meimei-fried-chicken-cai.jpg
+$ python3 c2pa_hello_world.py
+
+# Run multiple injection example
+# output: meimei-fried-chicken-cai-cai-cai.jpg
+$ python3 c2pa_multiple_injection.py meimei-fried-chicken.jpg
+```
+
+## Development Tips
 
 1. Currently, the `main` branch is based on C2PA spec draft v0.5 (compatible with the [latest C2PA spec draft](https://c2pa.org/public-draft/)).
 2. The `feature-support-c2pa-photo` branch follows the latest C2PA spec implementation.
