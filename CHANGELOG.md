@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.4.0] - 2021-09-02
+### Changed
+- Update materials from CAI to C2PA.
+
 ## [1.3.3] - 2021-08-26
 ### Fixed
 - [#17](https://github.com/numbersprotocol/starling-cai/issues/17) Fail to pass signature verification
@@ -31,7 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Section about "changelog" vs "CHANGELOG".
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v1.3.3...HEAD
+[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/numbersprotocol/starling-cai/compare/v1.3.3...v1.4.0
 [1.3.3]: https://github.com/numbersprotocol/starling-cai/compare/v1.3.2...v1.3.3
 [1.3.2]: https://github.com/numbersprotocol/starling-cai/compare/v1.3.1...v1.3.2
 [1.3.1]: https://github.com/numbersprotocol/starling-cai/compare/v1.3.0...v1.3.1
