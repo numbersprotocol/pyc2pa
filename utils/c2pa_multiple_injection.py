@@ -62,13 +62,13 @@ metadata = [
             'cai.location.broad': {
                 'type': '.json',
                 'data_bytes': json_to_bytes({
-                    'location': 'Okura Garden Hotel, Shanghai'
+                    'location': 'Taipei, Taiwan'
                 })
             },
             'cai.rights': {
                 'type': '.json',
                 'data_bytes': json_to_bytes({
-                    'copyright': 'Wing Shya'
+                    'copyright': 'Tammy Yang'
                 })
             },
             'cai.claim.thumbnail.jpg.jpg': {
@@ -105,13 +105,13 @@ metadata = [
             'cai.location.broad': {
                 'type': '.json',
                 'data_bytes': json_to_bytes({
-                    'location': 'Okura Garden Hotel, Shanghai'
+                    'location': 'Taipei, Taiwan'
                 })
             },
             'cai.rights': {
                 'type': '.json',
                 'data_bytes': json_to_bytes({
-                    'copyright': 'Wing Shya'
+                    'copyright': 'Tammy Yang'
                 })
             },
             'cai.claim.thumbnail.jpg.jpg': {
@@ -148,13 +148,13 @@ metadata = [
             'cai.location.broad': {
                 'type': '.json',
                 'data_bytes': json_to_bytes({
-                    'location': 'Okura Garden Hotel, Shanghai'
+                    'location': 'Taipei, Taiwan'
                 })
             },
             'cai.rights': {
                 'type': '.json',
                 'data_bytes': json_to_bytes({
-                    'copyright': 'Wing Shya'
+                    'copyright': 'Tammy Yang'
                 })
             },
             'cai.claim.thumbnail.jpg.jpg': {
