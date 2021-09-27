@@ -562,10 +562,5 @@ def main():
     process(assertions, claim, store_label)
 
 
-def main():
-    script = sys.argv[0]
-    process()
-
-
 if __name__ == "__main__":
     main()
