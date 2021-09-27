@@ -5,9 +5,11 @@ from Crypto.Signature import PKCS1_v1_5
 
 
 def usage():
-    print("Usage: \n"
-            "digi-sig -s  <priv-key> <data> <signature-file> \n"
-            "digi-sig -v  <PUB-key> <data> <signature-file> \n")
+    print(
+        "Usage: \n"
+        "digi-sig -s  <priv-key> <data> <signature-file> \n"
+        "digi-sig -v  <PUB-key> <data> <signature-file> \n"
+    )
 
 
 if (len(sys.argv) < 5):
@@ -26,7 +28,8 @@ def generate_signature(key, data, sig_f):
     rsa = RSA.importKey(key)
     signer = PKCS1_v1_5.new(rsa)
     signature = signer.sign(h)
-    with open(sig_f, 'wb') as f: f.write(signature)
+    with open(sig_f, 'wb') as f:
+        f.write(signature)
 
 
 def verify_signature(key, data, sig_f):
@@ -34,7 +37,8 @@ def verify_signature(key, data, sig_f):
     h = SHA256.new(data)
     rsa = RSA.importKey(key)
     signer = PKCS1_v1_5.new(rsa)
-    with open(sig_f, 'rb') as f: signature = f.read()
+    with open(sig_f, 'rb') as f:
+        signature = f.read()
 
     if (signer.verify(h, signature)):
         rsp = 'Success'
@@ -45,8 +49,10 @@ def verify_signature(key, data, sig_f):
 
 def main():
     # Read all file contents
-    with open(key_f, 'rb') as f: key = f.read()
-    with open(data_f, 'rb') as f: data = f.read()
+    with open(key_f, 'rb') as f:
+        key = f.read()
+    with open(data_f, 'rb') as f:
+        data = f.read()
 
     if (op == "-s"):
         # Generate Signature
@@ -55,7 +61,7 @@ def main():
         # Verify Signature
         verify_signature(key, data, sig_f)
     else:
-        #Error
+        # Error
         usage()
 
 

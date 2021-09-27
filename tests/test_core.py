@@ -1,5 +1,3 @@
-import io
-import json
 import unittest
 
 from cai.core import CaiAssertionStore
@@ -76,7 +74,7 @@ class TestCaiBox(unittest.TestCase):
                          bytes.fromhex(testing_claim))
 
     def test_cai_claim_signature(self):
-        testing_claim_signature = (
+        testing_claim_signature = ( # noqa F841
             '000000446a756d62000000276a756d646361736700110010800000aa00389b71'
             '036361692e7369676e617475726500000000156a736f6e7b22666f6f223a2262'
             '6172227d'
@@ -90,11 +88,11 @@ class TestCaiBox(unittest.TestCase):
         cai_claim_signature.description_box.print_box()
         cai_claim_signature.print_box()
 
-        #self.assertEqual(cai_claim_signature.convert_bytes(),
+        # self.assertEqual(cai_claim_signature.convert_bytes(),
         #                 bytes.fromhex(testing_claim_signature))
 
     def test_cai_store(self):
-        testing_store = (
+        testing_store = ( # noqa F841
             '000001296a756d62000000276a756d646361737400110010800000aa00389b71'
             '0363622e737461726c696e675f3100000000766a756d62000000286a756d6463'
             '61617300110010800000aa00389b71036361692e617373657274696f6e730000'
@@ -122,11 +120,11 @@ class TestCaiBox(unittest.TestCase):
         cai_store.description_box.print_box()
         cai_store.print_box()
 
-        #self.assertEqual(cai_store.convert_bytes(),
+        # self.assertEqual(cai_store.convert_bytes(),
         #                 bytes.fromhex(testing_store))
 
     def test_cai_claim_block(self):
-        testing_claim_block = (
+        testing_claim_block = ( # noqa F841
             '0000014e6a756d620000001d6a756d646361636200110010800000aa00389b71'
             '0363616900000001296a756d62000000276a756d646361737400110010800000'
             'aa00389b710363622e737461726c696e675f3100000000766a756d6200000028'
@@ -157,11 +155,11 @@ class TestCaiBox(unittest.TestCase):
         cai_claim_block.description_box.print_box()
         cai_claim_block.print_box()
 
-        #self.assertEqual(cai_claim_block.convert_bytes(),
+        # self.assertEqual(cai_claim_block.convert_bytes(),
         #                 bytes.fromhex(testing_claim_block))
 
     def test_app11_segment(self):
-        testing_app11_segment = (
+        testing_app11_segment = ( # noqa F841
             'ffeb01584a500001000000010000014e6a756d620000001d6a756d6463616362'
             '00110010800000aa00389b710363616900000001296a756d62000000276a756d'
             '646361737400110010800000aa00389b710363622e737461726c696e675f3100'
@@ -191,7 +189,7 @@ class TestCaiBox(unittest.TestCase):
         app11_segment.payload = cai_claim_block.convert_bytes()
         print('\tbytes:', app11_segment.convert_bytes().hex())
 
-        #self.assertEqual(app11_segment.convert_bytes(),
+        # self.assertEqual(app11_segment.convert_bytes(),
         #                 bytes.fromhex(testing_app11_segment))
 
 

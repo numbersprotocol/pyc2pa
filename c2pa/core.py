@@ -25,12 +25,10 @@ from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
 
-from cai.jumbf import Box
 from cai.jumbf import ContentBox
 from cai.jumbf import DescriptionBox
 from cai.jumbf import SuperBox
 
-from cai.jumbf import create_json_superbox
 from cai.jumbf import json_to_bytes
 
 from endesive import plain
@@ -40,10 +38,10 @@ Content Authenticity Initiative
 '''
 
 Cai_content_types = {
-    'claim_block'    : '6361636200110010800000aa00389b71',
-    'store'          : '6361737400110010800000aa00389b71',
+    'claim_block'    : '6361636200110010800000aa00389b71', # noqa E203
+    'store'          : '6361737400110010800000aa00389b71', # noqa E203
     'assertion_store': '6361617300110010800000aa00389b71',
-    'claim'          : '6361636c00110010800000aa00389b71',
+    'claim'          : '6361636c00110010800000aa00389b71', # noqa E203
     'claim_signature': '6361736700110010800000aa00389b71',
 }
 
@@ -152,6 +150,7 @@ class CaiClaim(SuperBox):
             claim['parent_claim'] = parent_claim
         return claim
 
+
 class CaiClaimEndesiveSignature(SuperBox):
     def __init__(self, claim, key):
         super(CaiClaimEndesiveSignature, self).__init__()
@@ -168,6 +167,7 @@ class CaiClaimEndesiveSignature(SuperBox):
         signature = plain.sign(data, key[0], key[1], key[2], 'sha256', attrs=True)
         payload = bytes.fromhex(uuid) + signature
         return payload
+
 
 class CaiClaimCMSSignature(SuperBox):
     def __init__(self, claim, key):

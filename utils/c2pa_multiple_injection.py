@@ -34,8 +34,6 @@ Verify
 import os
 import sys
 
-import requests
-
 from c2pa.jumbf import json_to_bytes
 from c2pa.starling import Starling
 

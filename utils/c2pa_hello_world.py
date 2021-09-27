@@ -44,8 +44,8 @@ photo_url = 'https://ipfs.io/ipfs/QmaaqwP1p71b118uNnHCvQTtywu1tK1H5LEjT6wWi8c5o2
 photo_filename = 'meimei-fried-chicken.jpg'
 
 # multi-claim injection
-#photo_url = 'https://ipfs.io/ipfs/QmPa8Dokcjcouv1KYrXn1cYA6XLACDBPVmnaMZ4un8K54L'
-#photo_filename = 'meimei-nbj.jpg'
+# photo_url = 'https://ipfs.io/ipfs/QmPa8Dokcjcouv1KYrXn1cYA6XLACDBPVmnaMZ4un8K54L'
+# photo_filename = 'meimei-nbj.jpg'
 
 photo_bytes = requests.get(photo_url).content
 

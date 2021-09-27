@@ -26,9 +26,9 @@ Part 5: JPEG universal metadata box format (JUMBF)
 # Spec B.1
 Jumbf_content_types = {
     'codestream': '6579d6fbdba2446bb2ac1b82feeb89d1',
-    'xml'       : '786d6c2000110010800000aa00389b71',
-    'json'      : '6a736f6e00110010800000aa00389b71',
-    'uuid'      : '7575696400110010800000aa00389b71',
+    'xml'       : '786d6c2000110010800000aa00389b71', # noqa E203
+    'json'      : '6a736f6e00110010800000aa00389b71', # noqa E203
+    'uuid'      : '7575696400110010800000aa00389b71', # noqa E203
 }
 
 
@@ -45,7 +45,7 @@ class Box(object):
         # Calculate box size dynamically.
         # 8 is from l_box (4) + t_box (4)
         return 8 + len(self.payload)
-    
+
     def set_payload(self):
         pass
 
@@ -173,9 +173,9 @@ class App11Box(object):
 
 
 def create_single_content_superbox(content=b'',
-                         t_box_type='',
-                         content_type='',
-                         label=''):
+                                   t_box_type='',
+                                   content_type='',
+                                   label=''):
     c_box = ContentBox(t_box_type=t_box_type)
     c_box.payload = content
     d_box = DescriptionBox(content_type=content_type, label=label)
@@ -202,7 +202,7 @@ def create_codestream_superbox(content=b'', label=''):
 
 
 def json_to_bytes(json_object):
-    return json.dumps(json_object, separators=(',',':')).encode('utf-8')
+    return json.dumps(json_object, separators=(',', ':')).encode('utf-8')
 
 
 def get_app11_marker_segment_headers(data_bytes):
@@ -211,24 +211,24 @@ def get_app11_marker_segment_headers(data_bytes):
     headers = {}
     for offset in offsets:
         try:
-            ci = data_bytes[offset + 4 : offset + 6].decode('utf-8')
+            ci = data_bytes[offset + 4: offset + 6].decode('utf-8')
         except Exception as e:
-            print('Find App11 marker, and fail to get CI')
+            print(f'Find App11 marker, and fail to get CI. Exception: {e}')
             ci = None
         try:
-            tbox = data_bytes[offset + 16 : offset + 20].decode('utf-8')
+            tbox = data_bytes[offset + 16: offset + 20].decode('utf-8')
         except Exception as e:
-            print('Find App11 marker, and fail to get TBox')
+            print(f'Find App11 marker, and fail to get TBox. Exception: {e}')
             tbox = None
 
         if ci == 'JP' and tbox == 'jumb':
             header = {}
-            header['le']     = int.from_bytes(data_bytes[offset + 2 : offset + 4], byteorder='big')
-            header['ci']     = data_bytes[offset + 4 : offset + 6].decode('utf-8')
-            header['en']     = int.from_bytes(data_bytes[offset + 6 : offset + 8], byteorder='big')
-            header['z']      = int.from_bytes(data_bytes[offset + 8 : offset + 12], byteorder='big')
-            header['lbox']   = int.from_bytes(data_bytes[offset + 12 : offset + 16], byteorder='big')
-            header['tbox']   = data_bytes[offset + 16 : offset + 20].decode('utf-8')
+            header['le'] = int.from_bytes(data_bytes[offset + 2: offset + 4], byteorder='big')
+            header['ci'] = data_bytes[offset + 4: offset + 6].decode('utf-8')
+            header['en'] = int.from_bytes(data_bytes[offset + 6: offset + 8], byteorder='big')
+            header['z'] = int.from_bytes(data_bytes[offset + 8: offset + 12], byteorder='big')
+            header['lbox'] = int.from_bytes(data_bytes[offset + 12: offset + 16], byteorder='big')
+            header['tbox'] = data_bytes[offset + 16: offset + 20].decode('utf-8')
             header['offset'] = offset
 
             # passive protection to skip illegal or empty segment
