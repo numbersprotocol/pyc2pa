@@ -19,7 +19,6 @@ import argparse
 import os
 
 from c2pa.core import CaiClaimBlock
-from c2pa.core import CaiClaimCMSSignature
 from c2pa.core import CaiStore
 from c2pa.jumbf import App11Box
 
@@ -35,6 +34,7 @@ from cryptography.hazmat.primitives.serialization import pkcs12
 
 '''Starling CLI tool to generate CAI metadata.
 '''
+
 
 class Starling(object):
     def __init__(self,
@@ -161,13 +161,13 @@ class Starling(object):
 
         # re-construct Claim Block payload
         claim_block_payload = bytearray()
-        ## App11 Length of Marker Segment (the Le parameter) value is 8 ~ 65535.
-        ## App11 Packet Sequence number (the Z parameter) value is 1 ~ 2^32-1.
-        ## The Claim Block maximum size will be ~= 2^48 B ~= 280 TB.
+        # App11 Length of Marker Segment (the Le parameter) value is 8 ~ 65535.
+        # App11 Packet Sequence number (the Z parameter) value is 1 ~ 2^32-1.
+        # The Claim Block maximum size will be ~= 2^48 B ~= 280 TB.
         for i in range(1, header_number + 1):
             payload_start = self.app11_headers[i]['offset'] + 20
             payload_end = payload_start + (self.app11_headers[i]['le'] - 18)
-            payload = self.raw_bytes[payload_start : payload_end]
+            payload = self.raw_bytes[payload_start: payload_end]
             claim_block_payload += payload
         store_bytes = cai_store.convert_bytes()
 
@@ -178,27 +178,31 @@ class Starling(object):
         updated_app11_segment = App11Box(en=last_en)
         updated_app11_segment.payload = updated_claim_block_bytes
 
-        ## Assuming that current CAI data consists of 3 App11 segments.
-        ##
-        ## +-- starting point
-        ## v
-        ## +-------+----+----+------+-----+------+------+-------------------------------+
-        ## | APP11 | Le | CI | En=1 | Z=1 | LBox | TBox | Payload (Claim Block, part 1) |
-        ## +-------+----+----+------+-----+------+------+-------------------------------+
-        ## | APP11 | Le | CI | En=1 | Z=2 | LBox | TBox | Payload (Claim Block, part 2) |
-        ## +-------+----+----+------+-----+------+------+-------------------------------+
-        ## | APP11 | Le | CI | En=1 | Z=3 | LBox | TBox | Payload (Claim Block, part 3) |
-        ## +-------+----+----+------+-----+------+------+-------------------------------+
-        ##                                                                              ^
-        ##                                                               ending point --+
-        ##
-        ## starting point of current CAI data
+        # Assuming that current CAI data consists of 3 App11 segments.
+        #
+        # +-- starting point
+        # v
+        # +-------+----+----+------+-----+------+------+-------------------------------+
+        # | APP11 | Le | CI | En=1 | Z=1 | LBox | TBox | Payload (Claim Block, part 1) |
+        # +-------+----+----+------+-----+------+------+-------------------------------+
+        # | APP11 | Le | CI | En=1 | Z=2 | LBox | TBox | Payload (Claim Block, part 2) |
+        # +-------+----+----+------+-----+------+------+-------------------------------+
+        # | APP11 | Le | CI | En=1 | Z=3 | LBox | TBox | Payload (Claim Block, part 3) |
+        # +-------+----+----+------+-----+------+------+-------------------------------+
+        #                                                                              ^
+        #                                                               ending point --+
+        #
+        # starting point of current CAI data
         update_range_s = self.app11_headers[1]['offset']
-        ## ending point of current CAI data
+        # ending point of current CAI data
         update_range_e = self.app11_headers[header_number]['offset'] + self.app11_headers[header_number]['le'] + 2
 
         # save CAI-injected media
-        data_bytes = self.raw_bytes[:update_range_s] + updated_app11_segment.convert_bytes() + self.raw_bytes[update_range_e:]
+        data_bytes = (
+            self.raw_bytes[:update_range_s] +
+            updated_app11_segment.convert_bytes() +
+            self.raw_bytes[update_range_e:]
+        )
         cai_data_bytes = insert_xmp_key(data_bytes, store_label=self.store_label)
         return cai_data_bytes
 
@@ -283,10 +287,11 @@ def main():
     # private key for signature
     if key_filepath != '':
         with open(key_filepath, 'rb') as f:
-            if type_sig=='cms':
+            if type_sig == 'cms':
                 key = f.read()
-            elif type_sig=='endesive':
-                # load_key_and_certificates second parameter is password to decrypt the data. Can be set to None of PKCS12 is not encrypted
+            elif type_sig == 'endesive':
+                # load_key_and_certificates second parameter is password to decrypt the data.
+                # Can be set to None of PKCS12 is not encrypted
                 # https://cryptography.io/en/latest/hazmat/primitives/asymmetric/serialization.html
                 key = pkcs12.load_key_and_certificates(f.read(), b'', backends.default_backend())
             else:
@@ -314,4 +319,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()   
+    main()
