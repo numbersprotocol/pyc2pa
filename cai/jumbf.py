@@ -26,7 +26,7 @@ Part 5: JPEG universal metadata box format (JUMBF)
 
 # Spec B.1
 Jumbf_content_types = {
-    'codestream': '6579d6fbdba2446bb2ac1b82feeb89d1',
+    'codestream': '40cb0c32bb8a489da70b2ad6f47f4369',
     'xml'       : '786d6c2000110010800000aa00389b71',
     'json'      : '6a736f6e00110010800000aa00389b71',
     'uuid'      : '7575696400110010800000aa00389b71',
@@ -204,11 +204,21 @@ def create_cbor_superbox(content=b'', label=''):
 
 
 def create_codestream_superbox(content=b'', label=''):
-    return create_single_content_superbox(
-        content=content,
-        t_box_type='bfdb',
-        content_type=Jumbf_content_types['codestream'],
-        label=label)
+    content_type = Jumbf_content_types['codestream']
+    d_box = DescriptionBox(content_type=content_type, label=label)
+    s_box = SuperBox()
+    s_box.description_box = d_box
+
+    # Embedded file description box
+    c_box = ContentBox(t_box_type='bfdb')
+    c_box.payload = b'\x00' + 'image/jpeg'.encode('utf-8') + b'\x00'
+    s_box.content_boxes.append(c_box)
+
+    # Binary data box
+    c_box = ContentBox(t_box_type='bidb')
+    c_box.payload = content
+    s_box.content_boxes.append(c_box)
+    return s_box
 
 
 def json_to_bytes(json_object):
