@@ -29,6 +29,7 @@ from cai.core import get_xmp_tag
 from cai.core import insert_xmp_key
 from cai.jumbf import create_codestream_superbox
 from cai.jumbf import create_json_superbox
+from cai.jumbf import create_cbor_superbox
 from cai.jumbf import get_app11_marker_segment_headers
 from cai.jumbf import json_to_bytes
 
@@ -96,6 +97,8 @@ class Starling(object):
 
             if assertion_type == '.json':
                 assertions.append(create_json_superbox(content=data_bytes, label=label))
+            elif assertion_type == '.cbor':
+                assertions.append(create_cbor_superbox(content=data_bytes, label=label))
             elif assertion_type == '.jpg':
                 assertions.append(create_codestream_superbox(content=data_bytes, label=label))
             else:
@@ -110,7 +113,8 @@ class Starling(object):
                                      recorder=self.recorder,
                                      parent_claim=self.parent_claim,
                                      key=self.private_key,
-                                     sig=self.signature_standard)
+                                     sig=self.signature_standard,
+                                     media_name=self.media_name)
         self.manifest_label = c2pa_manifest.manifest_label
 
         # create a new Claim Block Box

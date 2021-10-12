@@ -87,14 +87,14 @@ def encode_hashlink(binary_content, codec='base64', to_hexstr=False):
 
 def compute_hash(binary_content):
     m = hashlib.sha256(binary_content)
-    return m.hexdigest()
+    return m.digest()
 
 
 def insert_xmp_key(data_bytes, manifest_label):
     metadata = pyexiv2.ImageMetadata.from_buffer(data_bytes)
     metadata.read()
     metadata['Xmp.dcterms.provenance'] = pyexiv2.XmpTag(
-        'Xmp.dcterms.provenance', 'self#jumbf=c2pa/{}'.format(manifest_label))
+        'Xmp.dcterms.provenance', 'self#jumbf=c2pa/{}/c2pa.claim'.format(manifest_label))
     metadata.write()
     return metadata.buffer
 
@@ -121,27 +121,33 @@ class C2paClaim(SuperBox):
     def __init__(self,
                  assertion_store,
                  manifest_label,
+                 media_name,
                  recorder='Starling Capture using Numbers Protocol',
-                 parent_claim=''):
+                 parent_claim='',):
         super(C2paClaim, self).__init__()
         self.description_box = DescriptionBox(
-            content_type=Cai_content_types['claim'], label='c2pa.claim.v1')
+            content_type=Cai_content_types['claim'], label='c2pa.claim')
         content_box = ContentBox(t_box_type='cbor')
         content_box.payload = json_to_cbor_bytes(
             self.create_claim(assertion_store,
                               manifest_label,
                               recorder=recorder,
-                              parent_claim=parent_claim))
+                              parent_claim=parent_claim,
+                              media_name=media_name))
         self.content_boxes.append(content_box)
 
     def create_claim(self,
                      assertion_store,
                      manifest_label,
+                     media_name,
                      recorder='Starling Capture',
                      parent_claim=''):
         '''Create a Claim JSON object
         '''
         claim = {}
+        claim['dc:title'] = media_name
+        claim['dc:format'] = 'image/jpeg'
+        claim['instanceID'] = 'xmp:iid:4124fae1-1da7-4a3f-95c8-d8ae071bd048'
         claim['claim_generator'] = recorder
         claim['signature'] = 'self#jumbf=c2pa/{}/c2pa.signature'.format(
             manifest_label)
@@ -151,10 +157,10 @@ class C2paClaim(SuperBox):
                 manifest_label=manifest_label,
                 assertion_label=assertion.description_box.db_label,
             ),
+            'alg': 'sha256',
             'hash': compute_hash(assertion.content_boxes[0].convert_bytes()[8:]),
         } for assertion in assertion_store.content_boxes]
         claim['alg'] = 'sha256'
-        claim['alg_soft'] = 'sha256'
         if parent_claim != '':
             claim['parent_claim'] = parent_claim
         return claim
@@ -230,6 +236,7 @@ class C2paClaimSignature(SuperBox):
 
 class C2paManifest(SuperBox):
     def __init__(self,
+                 media_name,
                  provider='numbersprotocol',
                  assertions=[],
                  recorder='Starling Capture',
@@ -237,15 +244,16 @@ class C2paManifest(SuperBox):
                  key='',
                  sig='cms'):
         super(C2paManifest, self).__init__()
-        self.manifest_label = '{}:urn:uuid:{}'.format(provider, uuid.uuid1())
+        self.manifest_label = '{}:urn:uuid:{}'.format(provider, uuid.uuid4())
         self.description_box = DescriptionBox(
             content_type=Cai_content_types['manifest'],
             label=self.manifest_label)
         self.assertion_store = C2paAssertionStore(assertions)
         self.claim = C2paClaim(self.assertion_store,
-                              self.manifest_label,
-                              recorder=recorder,
-                              parent_claim=parent_claim)
+                               self.manifest_label,
+                               media_name,
+                               recorder=recorder,
+                               parent_claim=parent_claim)
         if len(key) == 0:
             self.signature = C2paClaimSignature()
         else:
@@ -253,16 +261,19 @@ class C2paManifest(SuperBox):
                 self.signature = C2paClaimCMSSignature(
                     self.claim.create_claim(self.assertion_store,
                                             self.manifest_label,
+                                            media_name,
                                             recorder=recorder,
                                             parent_claim=parent_claim), key)
             elif sig == 'endesive':
                 self.signature = C2paClaimEndesiveSignature(
                     self.claim.create_claim(self.assertion_store,
                                             self.manifest_label,
+                                            media_name,
                                             recorder=recorder,
                                             parent_claim=parent_claim), key)
             else:
                 self.signature = C2paClaimSignature()
+        
         self.content_boxes.append(self.assertion_store)
         self.content_boxes.append(self.claim)
         self.content_boxes.append(self.signature)
@@ -272,4 +283,4 @@ class C2paManifestBlock(SuperBox):
     def __init__(self):
         super(C2paManifestBlock, self).__init__()
         self.description_box = DescriptionBox(
-            content_type=Cai_content_types['manifest_block'], label='c2pa.v1')
+            content_type=Cai_content_types['manifest_block'], label='c2pa')
