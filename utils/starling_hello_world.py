@@ -16,15 +16,13 @@ import os
 
 import requests
 
-from cai.jumbf import json_to_bytes
+from cai.jumbf import json_to_bytes, json_to_cbor_bytes
 from cai.starling import Starling
 
 
 # single-claim injection
-# photo_url = 'https://ipfs.io/ipfs/QmaaqwP1p71b118uNnHCvQTtywu1tK1H5LEjT6wWi8c5o2'
-# photo_filename = 'meimei-fried-chicken.jpg'
-photo_url = 'https://http.cat/404'
-photo_filename = '404.jpg'
+photo_url = 'https://ipfs.io/ipfs/QmaaqwP1p71b118uNnHCvQTtywu1tK1H5LEjT6wWi8c5o2'
+photo_filename = 'meimei-fried-chicken.jpg'
 
 # multi-claim injection
 # photo_url = 'https://ipfs.io/ipfs/QmPa8Dokcjcouv1KYrXn1cYA6XLACDBPVmnaMZ4un8K54L'
@@ -33,31 +31,46 @@ photo_filename = '404.jpg'
 photo_bytes = requests.get(photo_url).content
 
 assertions = {
-    'adobe.asset.info': {
-        'type': '.json',
-        'data_bytes': json_to_bytes({
-            'title': '404-cat.jpg'
-        })
-    },
-    'c2pa.location.broad.v1': {
-        'type': '.json',
-        'data_bytes': json_to_bytes({
-            'location': 'Somewhere on the Internet'
-        })
-    },
-    'c2pa.rights.v1': {
-        'type': '.json',
-        'data_bytes': json_to_bytes({
-            'copyright': 'http.cat'
-        })
-    },
-    'c2pa.claim.thumbnail.jpg.jpg': {
+    'c2pa.thumbnail.claim.jpeg': {
         'type': '.jpg',
         'data_bytes': photo_bytes
     },
-    'c2pa.acquisition.thumbnail.jpg.jpg': {
-        'type': '.jpg',
-        'data_bytes': photo_bytes
+    'c2pa.actions': {
+        'type': '.cbor',
+        'data_bytes': json_to_cbor_bytes({
+            "actions": [
+                {
+                    "action": "c2pa.edited",
+                    "parameters": "gradient"
+                }
+            ]
+        })
+    },
+    'adobe.dictionary': {
+        'type': '.cbor',
+        'data_bytes': json_to_cbor_bytes({
+            "url": "https://cai-assertions.adobe.com/photoshop/dictionary.json"
+        })
+    },
+    'adobe.beta': {
+        'type': '.cbor',
+        'data_bytes': json_to_cbor_bytes({
+            'version': '0.7.0'
+        })
+    },
+    'stds.schema-org.CreativeWork': {
+        'type': '.json',
+        'data_bytes': json_to_bytes({
+            "@context": "https://schema.org",
+            "@type": "CreativeWork",
+            "author": [
+                {
+                    "@type": "Person",
+                    "credential": [],
+                    "name": "Tammy Yang"
+                }
+            ]
+        })
     },
     # other unused keys
     #     starling:FileconCID
@@ -79,18 +92,13 @@ assertions = {
     }
 }
 
-with open('data/Keys/Privkey.out', 'r') as f:
-    private_key = f.read()
-
-# TODO: Change the name of recorder as the format:
-# https://datatracker.ietf.org/doc/html/rfc7231#section-5.5.3
 starling = Starling(photo_bytes,
                     photo_filename,
                     assertions,
                     'numbersprotocol',
                     'Capture App: 5c2cefaa-fb4e-4d77-991c-5046729b295f',
-                    private_key,
-                    'cms')
+                    '',
+                    '')
 starling_cai_bytes = starling.c2pa_injection()
 
 fname, fext = os.path.splitext(photo_filename)
