@@ -21,19 +21,12 @@ import uuid
 import multibase
 import multihash
 import pyexiv2
-
-from Crypto.Hash import SHA256
-from Crypto.PublicKey import RSA
-from Crypto.Signature import PKCS1_v1_5
-
-from endesive import plain
+import cbor
 
 from cai.jumbf import ContentBox
 from cai.jumbf import DescriptionBox
 from cai.jumbf import SuperBox
-
-from cai.jumbf import json_to_bytes
-from cai.jumbf import json_to_cbor_bytes
+from cai.jumbf import json_to_bytes, json_to_cbor_bytes
 
 '''Implementation of C2PA Whitepaper
 Content Provenance and Authenticity
@@ -166,71 +159,30 @@ class C2paClaim(SuperBox):
         return claim
 
 
-class C2paClaimEndesiveSignature(SuperBox):
-    def __init__(self, claim, key):
-        super(C2paClaimEndesiveSignature, self).__init__()
-        self.description_box = DescriptionBox(
-            content_type=Cai_content_types['claim_signature'],
-            label=' c2pa.signature.v1')
-        content_box = ContentBox(t_box_type='uuid')
-        content_box.payload = self.create_endesive_signature(claim, key)
-        self.content_boxes.append(content_box)
-
-    def create_endesive_signature(self, claim, key):
-        uuid = Cai_content_types['claim_signature']
-        data = json_to_bytes(claim)
-        signature = plain.sign(data,
-                               key[0],
-                               key[1],
-                               key[2],
-                               'sha256',
-                               attrs=True)
-        payload = bytes.fromhex(uuid) + signature
-        return payload
-
-
-class C2paClaimCMSSignature(SuperBox):
-    def __init__(self, claim, key):
-        super(C2paClaimCMSSignature, self).__init__()
-        self.description_box = DescriptionBox(
-            content_type=Cai_content_types['claim_signature'],
-            label='c2pa.signature.v1')
-        content_box = ContentBox(t_box_type='uuid')
-        content_box.payload = self.create_cms_signature(claim, key)
-        self.content_boxes.append(content_box)
-
-    def generate_signature(self, data, key):
-        h = SHA256.new(data)
-        rsa = RSA.importKey(key)
-        signer = PKCS1_v1_5.new(rsa)
-        signature = signer.sign(h)
-        return signature
-
-    def create_cms_signature(self, claim, key):
-        uuid = Cai_content_types['claim_signature']
-        data = json_to_bytes(claim)
-        signature = self.generate_signature(data, key)
-        payload = bytes.fromhex(uuid) + signature
-        return payload
-
-
 class C2paClaimSignature(SuperBox):
-    def __init__(self):
+    def __init__(self, claim, key):
         super(C2paClaimSignature, self).__init__()
         self.description_box = DescriptionBox(
             content_type=Cai_content_types['claim_signature'],
-            label='cai.signature')
-        content_box = ContentBox(t_box_type='uuid')
-        content_box.payload = self.create_signature()
+            label='c2pa.signature')
+        content_box = ContentBox(t_box_type='cbor')
+        content_box.payload = self.create_signature(claim, key)
         self.content_boxes.append(content_box)
 
-    def create_signature(self):
+    def create_signature(self, claim, key):
         '''Create a Claim Signature payload in bytes.
         '''
-        uuid = Cai_content_types['claim_signature']
-        signature = 'signature placeholder:cb.starling_1'
-        padding = b'\x20' * (100 - len(signature))
-        payload = bytes.fromhex(uuid) + signature.encode('utf-8') + padding
+        phdr = b''
+        uhdr = {'x5chain': b''}
+        payload = None
+        signature = b''
+
+        message = [phdr, uhdr, payload, signature]
+        tag = cbor.Tag(18, message)
+        cose_tag = cbor.dumps(tag)
+
+        pad = b'\x20' * (4096 - len(cose_tag))
+        payload = cose_tag + pad
         return payload
 
 
@@ -254,25 +206,7 @@ class C2paManifest(SuperBox):
                                media_name,
                                recorder=recorder,
                                parent_claim=parent_claim)
-        if len(key) == 0:
-            self.signature = C2paClaimSignature()
-        else:
-            if sig == 'cms':
-                self.signature = C2paClaimCMSSignature(
-                    self.claim.create_claim(self.assertion_store,
-                                            self.manifest_label,
-                                            media_name,
-                                            recorder=recorder,
-                                            parent_claim=parent_claim), key)
-            elif sig == 'endesive':
-                self.signature = C2paClaimEndesiveSignature(
-                    self.claim.create_claim(self.assertion_store,
-                                            self.manifest_label,
-                                            media_name,
-                                            recorder=recorder,
-                                            parent_claim=parent_claim), key)
-            else:
-                self.signature = C2paClaimSignature()
+        self.signature = C2paClaimSignature(self.claim.content_boxes[0].payload, key=key)
         
         self.content_boxes.append(self.assertion_store)
         self.content_boxes.append(self.claim)
