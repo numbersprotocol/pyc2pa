@@ -92,13 +92,16 @@ assertions = {
     }
 }
 
+key = open('key.pem', 'rb').read()
+cert = open('cert.pem', 'rb').read()
+
 starling = Starling(photo_bytes,
                     photo_filename,
                     assertions,
                     'numbersprotocol',
                     'Capture App: 5c2cefaa-fb4e-4d77-991c-5046729b295f',
-                    '',
-                    '')
+                    key,
+                    cert)
 starling_cai_bytes = starling.c2pa_injection()
 
 fname, fext = os.path.splitext(photo_filename)
