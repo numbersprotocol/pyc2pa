@@ -17,16 +17,24 @@
 
 import hashlib
 import uuid
+import datetime
+import pytz
 
 import multibase
 import multihash
 import pyexiv2
 import cbor
 
+from cryptography.hazmat.backends import default_backend
+from cryptography import x509
+from cryptography.hazmat.primitives.serialization import Encoding
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding
+
 from cai.jumbf import ContentBox
 from cai.jumbf import DescriptionBox
 from cai.jumbf import SuperBox
-from cai.jumbf import json_to_bytes, json_to_cbor_bytes
+from cai.jumbf import json_to_cbor_bytes
 
 '''Implementation of C2PA Whitepaper
 Content Provenance and Authenticity
@@ -115,8 +123,7 @@ class C2paClaim(SuperBox):
                  assertion_store,
                  manifest_label,
                  media_name,
-                 recorder='Starling Capture using Numbers Protocol',
-                 parent_claim='',):
+                 recorder='Starling Capture using Numbers Protocol'):
         super(C2paClaim, self).__init__()
         self.description_box = DescriptionBox(
             content_type=Cai_content_types['claim'], label='c2pa.claim')
@@ -125,7 +132,6 @@ class C2paClaim(SuperBox):
             self.create_claim(assertion_store,
                               manifest_label,
                               recorder=recorder,
-                              parent_claim=parent_claim,
                               media_name=media_name))
         self.content_boxes.append(content_box)
 
@@ -133,14 +139,13 @@ class C2paClaim(SuperBox):
                      assertion_store,
                      manifest_label,
                      media_name,
-                     recorder='Starling Capture',
-                     parent_claim=''):
+                     recorder='Starling Capture'):
         '''Create a Claim JSON object
         '''
         claim = {}
         claim['dc:title'] = media_name
         claim['dc:format'] = 'image/jpeg'
-        claim['instanceID'] = 'xmp:iid:4124fae1-1da7-4a3f-95c8-d8ae071bd048'
+        claim['instanceID'] = 'xmp:fakeid:4124fae1-1da7-4a3f-95c8-d8ae071bd048'
         claim['claim_generator'] = recorder
         claim['signature'] = 'self#jumbf=c2pa/{}/c2pa.signature'.format(
             manifest_label)
@@ -154,34 +159,48 @@ class C2paClaim(SuperBox):
             'hash': compute_hash(assertion.content_boxes[0].convert_bytes()[8:]),
         } for assertion in assertion_store.content_boxes]
         claim['alg'] = 'sha256'
-        if parent_claim != '':
-            claim['parent_claim'] = parent_claim
         return claim
 
 
 class C2paClaimSignature(SuperBox):
-    def __init__(self, claim, key):
+    def __init__(self, claim, key, certificate):
         super(C2paClaimSignature, self).__init__()
         self.description_box = DescriptionBox(
             content_type=Cai_content_types['claim_signature'],
             label='c2pa.signature')
         content_box = ContentBox(t_box_type='cbor')
-        content_box.payload = self.create_signature(claim, key)
+        content_box.payload = self.create_signature(claim, key, certificate)
         self.content_boxes.append(content_box)
 
-    def create_signature(self, claim, key):
+    def create_signature(self, claim, key, certificate):
         '''Create a Claim Signature payload in bytes.
         '''
-        phdr = b''
-        uhdr = {'x5chain': b''}
-        payload = None
-        signature = b''
+        # -37 stands for PS256 (RSASSA-PSS using SHA-256 and MGF1 with SHA-256)
+        phdr = cbor.dumps({1: -37})
+        cert = x509.load_pem_x509_certificate(certificate, default_backend())
+        uhdr = {
+            'x5chain': cert.public_bytes(Encoding.DER),
+            'temp_signing_time': str(datetime.datetime.now(pytz.utc)),
+        }
 
+        private_key = serialization.load_pem_private_key(key, password=None)
+        sig_structure_data = cbor.dumps(['Signature1', phdr, b'' b'', claim])
+        sig_structure_data = b'\x84' + sig_structure_data[1:]
+        signature = private_key.sign(
+            sig_structure_data,
+            padding.PSS(
+                mgf=padding.MGF1(hashes.SHA256()),
+                salt_length=32
+            ),
+            hashes.SHA256()
+        )
+
+        payload = None
         message = [phdr, uhdr, payload, signature]
         tag = cbor.Tag(18, message)
         cose_tag = cbor.dumps(tag)
 
-        pad = b'\x20' * (4096 - len(cose_tag))
+        pad = b'\x00' * (4096 - len(cose_tag))
         payload = cose_tag + pad
         return payload
 
@@ -192,9 +211,8 @@ class C2paManifest(SuperBox):
                  provider='numbersprotocol',
                  assertions=[],
                  recorder='Starling Capture',
-                 parent_claim='',
                  key='',
-                 sig='cms'):
+                 certificate=''):
         super(C2paManifest, self).__init__()
         self.manifest_label = '{}:urn:uuid:{}'.format(provider, uuid.uuid4())
         self.description_box = DescriptionBox(
@@ -204,9 +222,8 @@ class C2paManifest(SuperBox):
         self.claim = C2paClaim(self.assertion_store,
                                self.manifest_label,
                                media_name,
-                               recorder=recorder,
-                               parent_claim=parent_claim)
-        self.signature = C2paClaimSignature(self.claim.content_boxes[0].payload, key=key)
+                               recorder=recorder)
+        self.signature = C2paClaimSignature(self.claim.content_boxes[0].payload, key, certificate)
         
         self.content_boxes.append(self.assertion_store)
         self.content_boxes.append(self.claim)
