@@ -36,6 +36,7 @@ setup(
         'py3exiv2>=0.9.3',
         'endesive>=2.0.2',
         #'tox',
+        'cbor>=1.0.0',
     ],
     python_requires='>=3',
     entry_points={
