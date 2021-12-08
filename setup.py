@@ -1,5 +1,3 @@
-import subprocess
-
 from setuptools import setup
 from setuptools import find_packages
 
@@ -11,10 +9,10 @@ with open("README.md", "r") as f:
 setup(
     name='c2pa',
     version='v2.1.0',
-    description='Content Authenticity Initiative Implementation.',
+    description='Implementation of C2PA: Coalition for Content Provenance and Authenticity.',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url='https://github.com/numbersprotocol.io/starling-cai',
+    url='https://github.com/numbersprotocol/pyc2pa',
     author='Numbers Inc.',
     author_email='dev@numbersprotocol.io',
     license='GPLv3',

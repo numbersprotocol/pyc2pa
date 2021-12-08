@@ -1,25 +1,22 @@
 # Copyright 2020 Numbers Co., Ltd.
 #
-# This file is part of starling-cai.
+# This file is part of pyc2pa.
 #
-# starling-cai is free software: you can redistribute it and/or modify
+# pyc2pa is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# starling-cai is distributed in the hope that it will be useful,
+# pyc2pa is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with starling-cai.  If not, see <http://www.gnu.org/licenses/>.
+# along with pyc2pa.  If not, see <http://www.gnu.org/licenses/>.
 
 import argparse
 import os
-
-from cryptography.hazmat import backends
-from cryptography.hazmat.primitives.serialization import pkcs12
 
 from c2pa.core import C2paManifestBlock
 from c2pa.core import C2paManifest
@@ -31,10 +28,10 @@ from c2pa.jumbf import create_codestream_superbox
 from c2pa.jumbf import create_json_superbox
 from c2pa.jumbf import create_cbor_superbox
 from c2pa.jumbf import get_app11_marker_segment_headers
-from c2pa.jumbf import json_to_bytes
 
 '''Starling CLI tool to generate CAI metadata.
 '''
+
 
 class Starling(object):
     def __init__(self,
@@ -170,13 +167,13 @@ class Starling(object):
 
         # re-construct Claim Block payload
         claim_block_payload = bytearray()
-        ## App11 Length of Marker Segment (the Le parameter) value is 8 ~ 65535.
-        ## App11 Packet Sequence number (the Z parameter) value is 1 ~ 2^32-1.
-        ## The Claim Block maximum size will be ~= 2^48 B ~= 280 TB.
+        # App11 Length of Marker Segment (the Le parameter) value is 8 ~ 65535.
+        # App11 Packet Sequence number (the Z parameter) value is 1 ~ 2^32-1.
+        # The Claim Block maximum size will be ~= 2^48 B ~= 280 TB.
         for i in range(1, header_number + 1):
             payload_start = self.app11_headers[i]['offset'] + 20
             payload_end = payload_start + (self.app11_headers[i]['le'] - 18)
-            payload = self.raw_bytes[payload_start : payload_end]
+            payload = self.raw_bytes[payload_start: payload_end]
             claim_block_payload += payload
         store_bytes = c2pa_manifest.convert_bytes()
 
@@ -187,27 +184,31 @@ class Starling(object):
         updated_app11_segment = App11Box(en=last_en)
         updated_app11_segment.payload = updated_claim_block_bytes
 
-        ## Assuming that current CAI data consists of 3 App11 segments.
-        ##
-        ## +-- starting point
-        ## v
-        ## +-------+----+----+------+-----+------+------+-------------------------------+
-        ## | APP11 | Le | CI | En=1 | Z=1 | LBox | TBox | Payload (Claim Block, part 1) |
-        ## +-------+----+----+------+-----+------+------+-------------------------------+
-        ## | APP11 | Le | CI | En=1 | Z=2 | LBox | TBox | Payload (Claim Block, part 2) |
-        ## +-------+----+----+------+-----+------+------+-------------------------------+
-        ## | APP11 | Le | CI | En=1 | Z=3 | LBox | TBox | Payload (Claim Block, part 3) |
-        ## +-------+----+----+------+-----+------+------+-------------------------------+
-        ##                                                                              ^
-        ##                                                               ending point --+
-        ##
-        ## starting point of current CAI data
+        # Assuming that current CAI data consists of 3 App11 segments.
+        #
+        # +-- starting point
+        # v
+        # +-------+----+----+------+-----+------+------+-------------------------------+
+        # | APP11 | Le | CI | En=1 | Z=1 | LBox | TBox | Payload (Claim Block, part 1) |
+        # +-------+----+----+------+-----+------+------+-------------------------------+
+        # | APP11 | Le | CI | En=1 | Z=2 | LBox | TBox | Payload (Claim Block, part 2) |
+        # +-------+----+----+------+-----+------+------+-------------------------------+
+        # | APP11 | Le | CI | En=1 | Z=3 | LBox | TBox | Payload (Claim Block, part 3) |
+        # +-------+----+----+------+-----+------+------+-------------------------------+
+        #                                                                              ^
+        #                                                               ending point --+
+        #
+        # starting point of current CAI data
         update_range_s = self.app11_headers[1]['offset']
-        ## ending point of current CAI data
+        # ending point of current CAI data
         update_range_e = self.app11_headers[header_number]['offset'] + self.app11_headers[header_number]['le'] + 2
 
         # save CAI-injected media
-        data_bytes = self.raw_bytes[:update_range_s] + updated_app11_segment.convert_bytes() + self.raw_bytes[update_range_e:]
+        data_bytes = (
+            self.raw_bytes[:update_range_s] +
+            updated_app11_segment.convert_bytes() +
+            self.raw_bytes[update_range_e:]
+        )
         c2pa_data_bytes = insert_xmp_key(data_bytes, manifest_label=c2pa_manifest.manifest_label)
         return c2pa_data_bytes
 

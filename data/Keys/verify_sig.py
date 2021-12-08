@@ -1,5 +1,6 @@
 from endesive import plain
 
+
 def main():
     trusted_cert_pems = (open('demo2_ca.crt.pem', 'rt').read(),)
     unsigned = open('plain-unsigned.txt', 'rb').read()
@@ -11,6 +12,7 @@ def main():
 
     print('signature ok?', signatureok)
     print('hash ok?', hashok)
+
 
 if __name__ == "__main__":
     main()

@@ -1,8 +1,24 @@
+# Copyright 2020 Numbers Co., Ltd.
+#
+# This file is part of pyc2pa.
+#
+# pyc2pa is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# pyc2pa is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with pyc2pa.  If not, see <http://www.gnu.org/licenses/>.
+
 import argparse
 import hashlib
 import json
 import os
-import sys
 
 import multibase
 import multihash
@@ -31,7 +47,7 @@ def parse_json(fname):
     return output
 
 
-def convert_to_hex(label, indent = 0, sec_indent = -1):
+def convert_to_hex(label, indent=0, sec_indent=-1):
     '''Convert label into hexadecimals
     '''
     if sec_indent == -1:
@@ -113,7 +129,7 @@ def get_content_lbox(fname):
     data = parse_json(fname)
 
     t_box_size = len(convert_to_hex('json'))
-    
+
     payload_size = len(convert_to_hex(data))
 
     total_size = 4 + t_box_size + payload_size
@@ -127,12 +143,12 @@ def get_uuid_content_box():
     '''Generate l_box for size for uuid content
     '''
     t_box_size = len(convert_to_hex('uuid'))
-    
+
     data_hex = ['63', '61', '73', '67', '00', '11', '00', '10', '80', '00', '00', 'aa', '00', '38', '9b', '71']
     data_hex_size = len(data_hex)
 
     # signature 1: placeholder signature data as mockup
-    # payload_data = ['73', '69', '67', '6e', '61', '74', '75', '72', '65', '20', '70', '6c', '61', '63', '65', '68', '6f', '6c', '64', '65', '72', '3a', '63', '62', '2e', '73', '74', '61', '72', '6c', '69', '6e', '67', '5f', '31', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20']
+    # payload_data = ['73', '69', '67', '6e', '61', '74', '75', '72', '65', '20', '70', '6c', '61', '63', '65', '68', '6f', '6c', '64', '65', '72', '3a', '63', '62', '2e', '73', '74', '61', '72', '6c', '69', '6e', '67', '5f', '31', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20'] # noqa E501
     # signature 2: real example signature
     payload_data = ['00', '87', '65', '0C', '94', '6D', 'EE', '53', '05', 'B2', 'D8', '87', '19', 'AD', '30', 'A9',
                     '9C', 'AB', 'CF', '3D', 'A2', '00', 'C2', '3D', '61', '71', '0B', 'EB', 'E7', '24', 'D0', 'CD',
@@ -239,7 +255,7 @@ def create_uuid_box(l_box):
     '''
     t_box = convert_to_hex('uuid')
     data_hex = ['63', '61', '73', '67', '00', '11', '00', '10', '80', '00', '00', 'aa', '00', '38', '9b', '71']
-    # payload_data = ['73', '69', '67', '6e', '61', '74', '75', '72', '65', '20', '70', '6c', '61', '63', '65', '68', '6f', '6c', '64', '65', '72', '3a', '63', '62', '2e', '73', '74', '61', '72', '6c', '69', '6e', '67', '5f', '31', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20']
+    # payload_data = ['73', '69', '67', '6e', '61', '74', '75', '72', '65', '20', '70', '6c', '61', '63', '65', '68', '6f', '6c', '64', '65', '72', '3a', '63', '62', '2e', '73', '74', '61', '72', '6c', '69', '6e', '67', '5f', '31', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20', '20'] # noqa E501
     payload_data = ['00', '87', '65', '0C', '94', '6D', 'EE', '53', '05', 'B2', 'D8', '87', '19', 'AD', '30', 'A9',
                     '9C', 'AB', 'CF', '3D', 'A2', '00', 'C2', '3D', '61', '71', '0B', 'EB', 'E7', '24', 'D0', 'CD',
                     'B1', 'CC', 'E5', '0C', '3A', '74', '26', '71', '5A', '86', '04', 'DB', '36', '55', 'C5', '30',
@@ -285,9 +301,20 @@ def create_injection_block(cai_block, store_block, assertion_store, assertion, c
 
     header = ['FF', 'EB']
     c_box = convert_to_hex('JP')
-    box_remain = ['00', '01', '00', '00', '00','01']
+    box_remain = ['00', '01', '00', '00', '00', '01']
 
-    block = header + l_box + c_box + box_remain + cai_block + store_block + assertion_store + assertion + claim + signature
+    block = (
+        header +
+        l_box +
+        c_box +
+        box_remain +
+        cai_block +
+        store_block +
+        assertion_store +
+        assertion +
+        claim +
+        signature
+    )
 
     return block
 
@@ -404,9 +431,20 @@ def create_complete(cai_l_box, cai_block, store_block, assertion_block, assertio
 
     header = ['FF', 'EB']
     c_box = convert_to_hex('JP')
-    box_remain = ['00', '01', '00', '00', '00','01']
+    box_remain = ['00', '01', '00', '00', '00', '01']
 
-    final_cai_block = header + l_box + c_box + box_remain + cai_block + store_block + assertion_block + assertions + claim_block + signature_block
+    final_cai_block = (
+        header +
+        l_box +
+        c_box +
+        box_remain +
+        cai_block +
+        store_block +
+        assertion_block +
+        assertions +
+        claim_block +
+        signature_block
+    )
 
     return final_cai_block
 
@@ -543,11 +581,6 @@ def main():
     assertions = create_assertions(assertion_filepaths, assertion_labels)
     claim = create_claim(claim_filepath)
     process(assertions, claim, store_label)
-
-
-def main():
-    script = sys.argv[0]
-    process()
 
 
 if __name__ == "__main__":

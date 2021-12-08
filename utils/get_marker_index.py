@@ -12,10 +12,10 @@ offsets = [m.start() for m in re.finditer(marker, f)]
 
 final_lbox = 0
 for offset in offsets:
-    Le   = int.from_bytes(f[offset + 2 : offset + 4], byteorder='big')
-    En   = int.from_bytes(f[offset + 6 : offset + 8], byteorder='big')
-    Z    = int.from_bytes(f[offset + 8 : offset + 12], byteorder='big')
-    LBox = int.from_bytes(f[offset + 12 : offset + 16], byteorder='big')
+    Le = int.from_bytes(f[offset + 2: offset + 4], byteorder='big')
+    En = int.from_bytes(f[offset + 6: offset + 8], byteorder='big')
+    Z = int.from_bytes(f[offset + 8: offset + 12], byteorder='big')
+    LBox = int.from_bytes(f[offset + 12: offset + 16], byteorder='big')
 
     print('# Offset: {0}, Le: {1}, En: {2}, Z (seq): {3}, LBox: {4}'.format(
         offset, Le, En, Z, LBox))

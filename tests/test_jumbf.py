@@ -102,7 +102,7 @@ class TestApp11Box(unittest.TestCase):
             '223a22626172227d'
         )
 
-        data = {"foo":"bar"}
+        data = {"foo": "bar"}
         f = io.BytesIO(json.dumps(data, separators=(',', ':')).encode('utf-8'))
         data_bytes = f.read()
 

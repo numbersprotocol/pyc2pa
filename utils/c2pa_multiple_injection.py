@@ -1,16 +1,35 @@
 #!/usr/bin/python3
+
+# Copyright 2020 Numbers Co., Ltd.
 #
-# Starling Hello World Example for multi-injection.
+# This file is part of pyc2pa.
 #
-# This program will inject 3 CAI Stores.
+# pyc2pa is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-# Usage
-#     $ python3 starling_multiple_injection.py <image-filepath>
+# pyc2pa is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
 #
-# Verify
-#     1. Go to https://verify.contentauthenticity.org/inspect
-#     2. Drag and drop the generated image.
-#     3. The webpage will show the CAI information.
+# You should have received a copy of the GNU General Public License
+# along with pyc2pa.  If not, see <http://www.gnu.org/licenses/>.
+
+'''
+C2PA Hello World Example for multi-injection.
+
+This program will inject 3 CAI Stores.
+
+Usage
+    $ python3 c2pa_multiple_injection.py <image-filepath>
+
+Verify
+    1. Go to https://verify.contentauthenticity.org/inspect
+    2. Drag and drop the generated image.
+    3. The webpage will show the CAI information.
+'''
 
 import os
 import sys
@@ -42,7 +61,7 @@ metadata = [
             'cai.location.broad': {
                 'type': '.json',
                 'data_bytes': json_to_bytes({
-                    'location': 'Okura Garden Hotel, Shanghai'
+                    'location': 'Taipei, Taiwan'
                 })
             },
             'adobe.beta': {
@@ -60,7 +79,7 @@ metadata = [
                         {
                             "@type": "Person",
                             "credential": [],
-                            "name": "Wing Shya"
+                            "name": "Tammy Yang"
                         }
                     ]
                 })
@@ -96,7 +115,7 @@ metadata = [
             'cai.location.broad': {
                 'type': '.json',
                 'data_bytes': json_to_bytes({
-                    'location': 'Okura Garden Hotel, Shanghai'
+                    'location': 'Taipei, Taiwan'
                 })
             },
             'adobe.beta': {
@@ -114,7 +133,7 @@ metadata = [
                         {
                             "@type": "Person",
                             "credential": [],
-                            "name": "Wing Shya"
+                            "name": "Tammy Yang"
                         }
                     ]
                 })
@@ -150,7 +169,7 @@ metadata = [
             'cai.location.broad': {
                 'type': '.json',
                 'data_bytes': json_to_bytes({
-                    'location': 'Okura Garden Hotel, Shanghai'
+                    'location': 'Taipei, Taiwan'
                 })
             },
             'adobe.beta': {
@@ -168,7 +187,7 @@ metadata = [
                         {
                             "@type": "Person",
                             "credential": [],
-                            "name": "Wing Shya"
+                            "name": "Tammy Yang"
                         }
                     ]
                 })
