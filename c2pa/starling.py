@@ -21,17 +21,17 @@ import os
 from cryptography.hazmat import backends
 from cryptography.hazmat.primitives.serialization import pkcs12
 
-from cai.core import C2paManifestBlock
-from cai.core import C2paManifest
-from cai.jumbf import App11Box, json_to_cbor_bytes
+from c2pa.core import C2paManifestBlock
+from c2pa.core import C2paManifest
+from c2pa.jumbf import App11Box, json_to_cbor_bytes
 
-from cai.core import get_xmp_tag
-from cai.core import insert_xmp_key
-from cai.jumbf import create_codestream_superbox
-from cai.jumbf import create_json_superbox
-from cai.jumbf import create_cbor_superbox
-from cai.jumbf import get_app11_marker_segment_headers
-from cai.jumbf import json_to_bytes
+from c2pa.core import get_xmp_tag
+from c2pa.core import insert_xmp_key
+from c2pa.jumbf import create_codestream_superbox
+from c2pa.jumbf import create_json_superbox
+from c2pa.jumbf import create_cbor_superbox
+from c2pa.jumbf import get_app11_marker_segment_headers
+from c2pa.jumbf import json_to_bytes
 
 '''Starling CLI tool to generate CAI metadata.
 '''

@@ -2,8 +2,8 @@ import unittest
 import requests
 import hashlib
 
-from cai.jumbf import json_to_bytes
-from cai.starling import Starling
+from c2pa.jumbf import json_to_bytes
+from c2pa.starling import Starling
 
 
 class TestStarling(unittest.TestCase):
@@ -43,7 +43,7 @@ class TestStarling(unittest.TestCase):
             self.photo_bytes, self.photo_filename, self.assertions,
             'cb.numbersprotocol_1',
             'Capture App: 5c2cefaa-fb4e-4d77-991c-5046729b295f', '', '')
-        starling_cai_bytes = starling.cai_injection()
+        starling_cai_bytes = starling.c2pa_injection
 
         m = hashlib.sha256()
         m.update(starling_cai_bytes)

@@ -1,6 +1,6 @@
 import unittest
 
-from cai.cai_tool import encode_hashlink
+from c2pa.cai_tool import encode_hashlink
 
 
 class TestEncodeHashlink(unittest.TestCase):

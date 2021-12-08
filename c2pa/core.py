@@ -31,10 +31,10 @@ from cryptography.hazmat.primitives.serialization import Encoding
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
 
-from cai.jumbf import ContentBox
-from cai.jumbf import DescriptionBox
-from cai.jumbf import SuperBox
-from cai.jumbf import json_to_cbor_bytes
+from c2pa.jumbf import ContentBox
+from c2pa.jumbf import DescriptionBox
+from c2pa.jumbf import SuperBox
+from c2pa.jumbf import json_to_cbor_bytes
 
 '''Implementation of C2PA Whitepaper
 Content Provenance and Authenticity

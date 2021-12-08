@@ -15,8 +15,8 @@
 import os
 import sys
 
-from cai.jumbf import json_to_bytes, json_to_cbor_bytes
-from cai.starling import Starling
+from c2pa.jumbf import json_to_bytes, json_to_cbor_bytes
+from c2pa.starling import Starling
 
 
 photo_filename = sys.argv[1]
