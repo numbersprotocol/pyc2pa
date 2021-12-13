@@ -28,7 +28,14 @@ In command line run:
 $ c2pa [-h] [-a ASSERTION] [--provider PROVIDER] [--recorder RECORDER] [-k KEY] [-c CERT] [-i INJECT] [-d]
 ```
 
-### Preparation
+### Example
+
+Files used in the following examples are provided in [example.zip](https://github.com/numbersprotocol/pyc2pa/files/7702158/example.zip)
+
+```
+$ unzip example.zip
+$ cd example
+```
 
 Generate private key and certificate.
 
@@ -41,8 +48,6 @@ Generate thumbnail image.
 ```
 $ convert -resize 1024x768 meimei-fried-chicken.jpg c2pa.thumbnail.claim.jpeg.jpg
 ```
-
-### Example
 
 Generate meimei-fried-chicken-cai.jpg containing single C2PA injection.
 
