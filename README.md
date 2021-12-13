@@ -7,11 +7,11 @@ PyC2PA is Python implementation of [C2PA](https://c2pa.org/) (Coalition for Cont
 
 ## Quick Trial
 
-1. Download the testing photo: [meimei-fried-chicken-cai-cai-cai.jpg](https://user-images.githubusercontent.com/292790/131797706-937ac2ef-e57c-4fe6-9842-2941deba6cec.jpg)
-1. Go to the [CAI verification website](https://verify-alpha.contentauthenticity.org/) and upload the photo.
+1. Download the testing photo: [meimei-fried-chicken-cai-cai-cai.jpg](https://user-images.githubusercontent.com/17119193/145776913-cfe4de41-7f58-482e-b732-9aeb00c477bb.jpg)
+1. Go to the [CAI verification website](https://verify.contentauthenticity.org/inspect) and upload the photo.
 1. You should see the C2PA information (3 injections) like this:
 
-    ![cai-verify-example](https://user-images.githubusercontent.com/292790/131798257-21159c2a-a958-431b-aaea-1649b27aaaaf.png)
+    ![cai-verify-example](https://user-images.githubusercontent.com/17119193/145777230-778ffff0-109d-470b-b0c3-6152bd63f8cb.png)
 
 ## Installation
 
