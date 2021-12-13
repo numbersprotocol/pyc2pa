@@ -8,7 +8,7 @@ with open("README.md", "r") as f:
 
 setup(
     name='c2pa',
-    version='2.1.0',
+    version='v2.1.0',
     description='Implementation of C2PA: Coalition for Content Provenance and Authenticity.',
     long_description=long_description,
     long_description_content_type="text/markdown",
