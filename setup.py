@@ -8,7 +8,7 @@ with open("README.md", "r") as f:
 
 setup(
     name='c2pa',
-    version='v1.4.1',
+    version='v2.1.0',
     description='Implementation of C2PA: Coalition for Content Provenance and Authenticity.',
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -33,6 +33,7 @@ setup(
         'pymultihash>=0.8.2',
         'py3exiv2>=0.9.3',
         'endesive>=2.0.2',
+        'cbor>=1.0.0',
     ],
     python_requires='>=3',
     entry_points={

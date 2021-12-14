@@ -1,13 +1,13 @@
 import unittest
 
-from cai.core import CaiAssertionStore
-from cai.core import CaiClaim
-from cai.core import CaiClaimBlock
-from cai.core import CaiClaimSignature
-from cai.core import CaiStore
-from cai.jumbf import App11Box
-from cai.jumbf import create_json_superbox
-from cai.jumbf import json_to_bytes
+from c2pa.core import CaiAssertionStore
+from c2pa.core import CaiClaim
+from c2pa.core import CaiClaimBlock
+from c2pa.core import CaiClaimSignature
+from c2pa.core import CaiStore
+from c2pa.jumbf import App11Box
+from c2pa.jumbf import create_json_superbox
+from c2pa.jumbf import json_to_bytes
 
 
 class TestCaiBox(unittest.TestCase):

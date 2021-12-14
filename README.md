@@ -7,11 +7,11 @@ PyC2PA is Python implementation of [C2PA](https://c2pa.org/) (Coalition for Cont
 
 ## Quick Trial
 
-1. Download the testing photo: [meimei-fried-chicken-cai-cai-cai.jpg](https://user-images.githubusercontent.com/292790/131797706-937ac2ef-e57c-4fe6-9842-2941deba6cec.jpg)
-1. Go to the [CAI verification website](https://verify-alpha.contentauthenticity.org/) and upload the photo.
+1. Download the testing photo: [meimei-fried-chicken-cai-cai-cai.jpg](https://user-images.githubusercontent.com/17119193/145776913-cfe4de41-7f58-482e-b732-9aeb00c477bb.jpg)
+1. Go to the [CAI verification website](https://verify.contentauthenticity.org/inspect) and upload the photo.
 1. You should see the C2PA information (3 injections) like this:
 
-    ![cai-verify-example](https://user-images.githubusercontent.com/292790/131798257-21159c2a-a958-431b-aaea-1649b27aaaaf.png)
+    ![cai-verify-example](https://user-images.githubusercontent.com/17119193/145777230-778ffff0-109d-470b-b0c3-6152bd63f8cb.png)
 
 ## Installation
 
@@ -25,24 +25,56 @@ $ python3 -m pip install c2pa
 In command line run:
 
 ```
-$ c2pa [-a ASSERTION] [--store-label STORE_LABEL] [--recorder RECORDER] [-k KEY] [-s SIG] [-o OUTPUT] [-i INJECT]
+$ c2pa [-h] [-a ASSERTION] [--provider PROVIDER] [--recorder RECORDER] [-k KEY] [-c CERT] [-i INJECT] [-d]
 ```
 
-Example: generate meimei-fried-chicken-cai.jpg containing single C2PA injection.
+### Example
+
+Files used in the following examples are provided in [example.zip](https://github.com/numbersprotocol/pyc2pa/files/7702158/example.zip)
+
+```
+$ unzip example.zip
+$ cd example
+```
+
+Generate private key and certificate.
+
+```
+$ openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes
+```
+
+Generate thumbnail image.
+
+```
+$ convert -resize 1024x768 meimei-fried-chicken.jpg c2pa.thumbnail.claim.jpeg.jpg
+```
+
+Generate meimei-fried-chicken-cai.jpg containing single C2PA injection.
 
 ```
 $ c2pa \
-    -a cai.location.broad.json \
-    -a cai.rights.json \
-    -a cai.claim.thumbnail.jpg.jpg \
-    -a cai.acquisition.thumbnail.jpg.jpg \
-    -a adobe.asset.info.json \
+    -a stds.schema-org.CreativeWork.json \
+    -a c2pa.thumbnail.claim.jpeg.jpg \
     -a starling.integrity.json \
+    --provider "numbersprotocol" \
     --recorder "Starling Capture using Numbers Protocol" \
-    --store-label "cb.starling_1" \
-    -k certificate.p12 \
-    -s endesive \
+    -k key.pem \
+    -c cert.pem \
     -i meimei-fried-chicken.jpg
+```
+
+Generate meimei-fried-chicken-cai-cai.jpg containing 2 C2PA injections.
+
+```
+$ c2pa \
+    -a stds.schema-org.CreativeWork.json \
+    -a c2pa.thumbnail.claim.jpeg.jpg \
+    -a starling.integrity.json \
+    --provider "numbersprotocol" \
+    --recorder "Starling Capture using Numbers Protocol" \
+    -k key.pem \
+    -c cert.pem \
+    -i meimei-fried-chicken-cai.jpg
 ```
 
 ## Quick Start
@@ -68,7 +100,7 @@ $ python3 c2pa_multiple_injection.py meimei-fried-chicken.jpg
 
 ## Development Tips
 
-1. Currently, the `main` branch is based on C2PA spec draft v0.5 (compatible with the [latest C2PA spec draft](https://c2pa.org/public-draft/)).
+1. Currently, the `main` branch is based on C2PA spec draft v0.7 (compatible with the [latest C2PA spec draft](https://c2pa.org/public-draft/)).
 2. The `feature-support-c2pa-photo` branch follows the latest C2PA spec implementation.
 3. `pyc2pa/utils/` contains examples of single injection and multiple injection.
 4. `pyc2pa/utils/digital-signature/` contains detailed documents and example codes how to create and verify a C2PA signature.

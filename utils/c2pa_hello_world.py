@@ -35,7 +35,7 @@ import os
 
 import requests
 
-from c2pa.jumbf import json_to_bytes
+from c2pa.jumbf import json_to_bytes, json_to_cbor_bytes
 from c2pa.starling import Starling
 
 
@@ -50,31 +50,46 @@ photo_filename = 'meimei-fried-chicken.jpg'
 photo_bytes = requests.get(photo_url).content
 
 assertions = {
-    'adobe.asset.info': {
-        'type': '.json',
-        'data_bytes': json_to_bytes({
-            'title': 'meimei-nbj.jpg'
-        })
-    },
-    'cai.location.broad': {
-        'type': '.json',
-        'data_bytes': json_to_bytes({
-            'location': 'Dogworld, Taipei Taiwan'
-        })
-    },
-    'cai.rights': {
-        'type': '.json',
-        'data_bytes': json_to_bytes({
-            'copyright': 'Tammy Yang'
-        })
-    },
-    'cai.claim.thumbnail.jpg.jpg': {
+    'c2pa.thumbnail.claim.jpeg': {
         'type': '.jpg',
         'data_bytes': photo_bytes
     },
-    'cai.acquisition.thumbnail.jpg.jpg': {
-        'type': '.jpg',
-        'data_bytes': photo_bytes
+    'c2pa.actions': {
+        'type': '.cbor',
+        'data_bytes': json_to_cbor_bytes({
+            "actions": [
+                {
+                    "action": "c2pa.edited",
+                    "parameters": "gradient"
+                }
+            ]
+        })
+    },
+    'adobe.dictionary': {
+        'type': '.cbor',
+        'data_bytes': json_to_cbor_bytes({
+            "url": "https://cai-assertions.adobe.com/photoshop/dictionary.json"
+        })
+    },
+    'adobe.beta': {
+        'type': '.cbor',
+        'data_bytes': json_to_cbor_bytes({
+            'version': '0.7.0'
+        })
+    },
+    'stds.schema-org.CreativeWork': {
+        'type': '.json',
+        'data_bytes': json_to_bytes({
+            "@context": "https://schema.org",
+            "@type": "CreativeWork",
+            "author": [
+                {
+                    "@type": "Person",
+                    "credential": [],
+                    "name": "Tammy Yang"
+                }
+            ]
+        })
     },
     # other unused keys
     #     starling:FileconCID
@@ -96,14 +111,17 @@ assertions = {
     }
 }
 
+key = open('key.pem', 'rb').read()
+cert = open('cert.pem', 'rb').read()
+
 starling = Starling(photo_bytes,
                     photo_filename,
                     assertions,
-                    'cb.numbersprotocol_1',
+                    'numbersprotocol',
                     'Capture App: 5c2cefaa-fb4e-4d77-991c-5046729b295f',
-                    '',
-                    '')
-starling_cai_bytes = starling.cai_injection()
+                    key,
+                    cert)
+starling_cai_bytes = starling.c2pa_injection()
 
 fname, fext = os.path.splitext(photo_filename)
 fpath = fname + '-cai' + fext

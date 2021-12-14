@@ -34,7 +34,7 @@ Verify
 import os
 import sys
 
-from c2pa.jumbf import json_to_bytes
+from c2pa.jumbf import json_to_bytes, json_to_cbor_bytes
 from c2pa.starling import Starling
 
 
@@ -49,6 +49,7 @@ metadata = [
         'claim': {
             'store_label': 'cb.Authmedia_1',
             'recorder': '851b7b53-a987-4a2c-af3f-f3221028cca9',
+            'photo_filename': photo_filename,
         },
         'assertions': {
             'adobe.asset.info': {
@@ -63,17 +64,27 @@ metadata = [
                     'location': 'Taipei, Taiwan'
                 })
             },
-            'cai.rights': {
-                'type': '.json',
-                'data_bytes': json_to_bytes({
-                    'copyright': 'Tammy Yang'
+            'adobe.beta': {
+                'type': '.cbor',
+                'data_bytes': json_to_cbor_bytes({
+                    'version': '0.7.0'
                 })
             },
-            'cai.claim.thumbnail.jpg.jpg': {
-                'type': '.jpg',
-                'data_bytes': thumbnail_bytes
+            'stds.schema-org.CreativeWork': {
+                'type': '.json',
+                'data_bytes': json_to_bytes({
+                    "@context": "https://schema.org",
+                    "@type": "CreativeWork",
+                    "author": [
+                        {
+                            "@type": "Person",
+                            "credential": [],
+                            "name": "Tammy Yang"
+                        }
+                    ]
+                })
             },
-            'cai.acquisition.thumbnail.jpg.jpg': {
+            'c2pa.thumbnail.claim.jpeg': {
                 'type': '.jpg',
                 'data_bytes': thumbnail_bytes
             },
@@ -92,6 +103,7 @@ metadata = [
         'claim': {
             'store_label': 'cb.IOTAIntegrityChain_2',
             'recorder': 'AYYCXSXJTQOWBUKKORA9NOGMINILMDLMI9UKHWOPYVUOAEJGOMH9CEOONDVADMVABZVKINBBXBQLA9999',
+            'photo_filename': photo_filename.replace('.jpg', '-cai.jpg')
         },
         'assertions': {
             'adobe.asset.info': {
@@ -106,17 +118,27 @@ metadata = [
                     'location': 'Taipei, Taiwan'
                 })
             },
-            'cai.rights': {
-                'type': '.json',
-                'data_bytes': json_to_bytes({
-                    'copyright': 'Tammy Yang'
+            'adobe.beta': {
+                'type': '.cbor',
+                'data_bytes': json_to_cbor_bytes({
+                    'version': '0.7.0'
                 })
             },
-            'cai.claim.thumbnail.jpg.jpg': {
-                'type': '.jpg',
-                'data_bytes': thumbnail_bytes
+            'stds.schema-org.CreativeWork': {
+                'type': '.json',
+                'data_bytes': json_to_bytes({
+                    "@context": "https://schema.org",
+                    "@type": "CreativeWork",
+                    "author": [
+                        {
+                            "@type": "Person",
+                            "credential": [],
+                            "name": "Tammy Yang"
+                        }
+                    ]
+                })
             },
-            'cai.acquisition.thumbnail.jpg.jpg': {
+            'c2pa.thumbnail.claim.jpeg': {
                 'type': '.jpg',
                 'data_bytes': thumbnail_bytes
             },
@@ -135,6 +157,7 @@ metadata = [
         'claim': {
             'store_label': 'cb.ThunderCoreNFTChain_3',
             'recorder': '0xc363852e13d5cd0df8a4a12bfe0e2f3b23e504ff:39',
+            'photo_filename': photo_filename.replace('.jpg', '-cai-cai.jpg')
         },
         'assertions': {
             'adobe.asset.info': {
@@ -149,17 +172,27 @@ metadata = [
                     'location': 'Taipei, Taiwan'
                 })
             },
-            'cai.rights': {
-                'type': '.json',
-                'data_bytes': json_to_bytes({
-                    'copyright': 'Tammy Yang'
+            'adobe.beta': {
+                'type': '.cbor',
+                'data_bytes': json_to_cbor_bytes({
+                    'version': '0.7.0'
                 })
             },
-            'cai.claim.thumbnail.jpg.jpg': {
-                'type': '.jpg',
-                'data_bytes': thumbnail_bytes
+            'stds.schema-org.CreativeWork': {
+                'type': '.json',
+                'data_bytes': json_to_bytes({
+                    "@context": "https://schema.org",
+                    "@type": "CreativeWork",
+                    "author": [
+                        {
+                            "@type": "Person",
+                            "credential": [],
+                            "name": "Tammy Yang"
+                        }
+                    ]
+                })
             },
-            'cai.acquisition.thumbnail.jpg.jpg': {
+            'c2pa.thumbnail.claim.jpeg': {
                 'type': '.jpg',
                 'data_bytes': thumbnail_bytes
             },
@@ -176,18 +209,21 @@ metadata = [
     },
 ]
 
+key = open('key.pem', 'rb').read()
+cert = open('cert.pem', 'rb').read()
+
 # 1st CAI injection: Authmedia
 # 2nd CAI injection: IOTA
 # 3rd CAI injection: ThunderCore
 for i in range(3):
     starling = Starling(photo_bytes,
-                        photo_filename,
+                        metadata[i]['claim']['photo_filename'],
                         metadata[i]['assertions'],
                         metadata[i]['claim']['store_label'],
                         metadata[i]['claim']['recorder'],
-                        '',
-                        '')
-    photo_bytes = starling.cai_injection()
+                        key,
+                        cert)
+    photo_bytes = starling.c2pa_injection()
 
 # Save to file
 fname, fext = os.path.splitext(photo_filename)

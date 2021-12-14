@@ -18,19 +18,16 @@
 import argparse
 import os
 
-from c2pa.core import CaiClaimBlock
-from c2pa.core import CaiStore
-from c2pa.jumbf import App11Box
+from c2pa.core import C2paManifestBlock
+from c2pa.core import C2paManifest
+from c2pa.jumbf import App11Box, json_to_cbor_bytes
 
 from c2pa.core import get_xmp_tag
 from c2pa.core import insert_xmp_key
 from c2pa.jumbf import create_codestream_superbox
 from c2pa.jumbf import create_json_superbox
+from c2pa.jumbf import create_cbor_superbox
 from c2pa.jumbf import get_app11_marker_segment_headers
-from c2pa.jumbf import json_to_bytes
-
-from cryptography.hazmat import backends
-from cryptography.hazmat.primitives.serialization import pkcs12
 
 '''Starling CLI tool to generate CAI metadata.
 '''
@@ -41,33 +38,31 @@ class Starling(object):
                  media_bytes,
                  media_name,
                  raw_assertions,
-                 store_label,
+                 provider,
                  recorder,
                  private_key='',
-                 signature_standard='cms'):
+                 certificate=''):
         '''
         raw_bytes: media content in bytes.
 
         raw_assertions: dict of assertion JSON objects, and keys are labels.
             refer to create_assertions for the details.
 
-        store_label: Example: cb.starling_1
+        provider: Example: numbersprotocol
 
         recorder: The recorder field in Claim.
 
-        parent_claim: The parent_claim field in Claim. Example: self#jumbf=cai/cb.adobe/cai.claim
-
         private_key: private key bytes.
 
-        signature_standard: CMS or CADES-B.
+        certificate: certificate bytes.
         '''
         self.raw_bytes = media_bytes
         self.media_name = media_name
         self.assertions = self.create_assertions(raw_assertions)
-        self.store_label = store_label
+        self.provider = provider
         self.recorder = recorder
         self.private_key = private_key
-        self.signature_standard = signature_standard
+        self.certificate = certificate
         # get the label of the last Claim
         self.parent_claim = get_xmp_tag(self.raw_bytes)
         # get App11 marker segment headers
@@ -97,31 +92,33 @@ class Starling(object):
 
             if assertion_type == '.json':
                 assertions.append(create_json_superbox(content=data_bytes, label=label))
-            elif assertion_type == '.jpg':
+            elif assertion_type == '.cbor':
+                assertions.append(create_cbor_superbox(content=data_bytes, label=label))
+            elif assertion_type == '.jpg' or assertion_type == '.jpeg':
                 assertions.append(create_codestream_superbox(content=data_bytes, label=label))
             else:
                 raise Exception(
                     'Unknown assertion type {0} from {1}'.format(assertion_type, label))
         return assertions
 
-    def signel_claim_injection(self):
-        # create a new Store
-        cai_store = CaiStore(label=self.store_label,
-                             assertions=self.assertions,
-                             recorder=self.recorder,
-                             parent_claim=self.parent_claim,
-                             key=self.private_key,
-                             sig=self.signature_standard)
+    def single_claim_injection(self):
+        # create a new manifest
+        c2pa_manifest = C2paManifest(provider=self.provider,
+                                     assertions=self.assertions,
+                                     recorder=self.recorder,
+                                     key=self.private_key,
+                                     media_name=self.media_name,
+                                     certificate=self.certificate)
 
         # create a new Claim Block Box
-        cai_claim_block = CaiClaimBlock()
-        cai_claim_block.content_boxes.append(cai_store)
-        cai_segment = App11Box()
-        cai_segment.payload = cai_claim_block.convert_bytes()
+        c2pa_manifest_block = C2paManifestBlock()
+        c2pa_manifest_block.content_boxes.append(c2pa_manifest)
+        c2pa_segment = App11Box()
+        c2pa_segment.payload = c2pa_manifest_block.convert_bytes()
 
         # save CAI-injected media
-        data_bytes = self.raw_bytes[0:2] + cai_segment.convert_bytes() + self.raw_bytes[2:]
-        cai_data_bytes = insert_xmp_key(data_bytes, store_label=self.store_label)
+        data_bytes = self.raw_bytes[0:2] + c2pa_segment.convert_bytes() + self.raw_bytes[2:]
+        cai_data_bytes = insert_xmp_key(data_bytes, manifest_label=c2pa_manifest.manifest_label)
         return cai_data_bytes
 
     def multiple_claims_injection(self):
@@ -137,22 +134,31 @@ class Starling(object):
         acquisition_assertion = {
             'dc:format': 'image/jpeg',
             'dc:title': self.media_name,
-            'dcterms:provenance': self.parent_claim,
-            'stRef:DocumentID': 'xmp:fakeid:39afb1d3-7f8c-44e6-b771-85e0d9adb377',
-            'stRef:InstanceID': 'xmp:fakeid:10c04858-d3fd-4e2c-8947-7f1e29d62fbe',
-            'thumbnail': 'self#jumbf=cai/{}/cai.assertions/cai.acquisition.thumbnail.jpeg'.format(self.store_label)
+            'documentID': 'xmp:fakeid:39afb1d3-7f8c-44e6-b771-85e0d9adb377',
+            'instanceID': 'xmp:fakeid:10c04858-d3fd-4e2c-8947-7f1e29d62fbe',
+            'relationship': 'parentOf',
+            'c2pa_manifest': {
+                'url': self.parent_claim.replace('/c2pa.claim', ''),
+                'alg': 'sha256',
+                'hash': b'placeholder'
+            },
+            'thumbnail': {
+                'url': self.parent_claim.replace('/c2pa.claim', '/c2pa.thumbnail.claim.jpeg'),
+                'alg': 'sha256',
+                'hash': b'placeholder'
+            }
         }
-        self.assertions.append(create_json_superbox(
-            content=json_to_bytes(acquisition_assertion),
-            label='cai.acquisition_1'))
+        self.assertions.append(create_cbor_superbox(
+            content=json_to_cbor_bytes(acquisition_assertion),
+            label='c2pa.ingredient'))
 
         # create a new Store
-        cai_store = CaiStore(label=self.store_label,
-                             assertions=self.assertions,
-                             recorder=self.recorder,
-                             parent_claim=self.parent_claim,
-                             key=self.private_key,
-                             sig=self.signature_standard)
+        c2pa_manifest = C2paManifest(provider=self.provider,
+                                     assertions=self.assertions,
+                                     recorder=self.recorder,
+                                     key=self.private_key,
+                                     certificate=self.certificate,
+                                     media_name=self.media_name)
 
         # get last segment header information
         header_number = len(self.app11_headers)
@@ -169,7 +175,7 @@ class Starling(object):
             payload_end = payload_start + (self.app11_headers[i]['le'] - 18)
             payload = self.raw_bytes[payload_start: payload_end]
             claim_block_payload += payload
-        store_bytes = cai_store.convert_bytes()
+        store_bytes = c2pa_manifest.convert_bytes()
 
         # append new Store bytes
         updated_claim_block_payload = claim_block_payload + store_bytes
@@ -203,15 +209,15 @@ class Starling(object):
             updated_app11_segment.convert_bytes() +
             self.raw_bytes[update_range_e:]
         )
-        cai_data_bytes = insert_xmp_key(data_bytes, store_label=self.store_label)
-        return cai_data_bytes
+        c2pa_data_bytes = insert_xmp_key(data_bytes, manifest_label=c2pa_manifest.manifest_label)
+        return c2pa_data_bytes
 
-    def cai_injection(self):
+    def c2pa_injection(self):
         if self.has_app11_headers:
-            cai_data_bytes = self.multiple_claims_injection()
+            c2pa_data_bytes = self.multiple_claims_injection()
         else:
-            cai_data_bytes = self.signel_claim_injection()
-        return cai_data_bytes
+            c2pa_data_bytes = self.single_claim_injection()
+        return c2pa_data_bytes
 
 
 def parse_args():
@@ -224,9 +230,9 @@ def parse_args():
         action='append',
         default=[])
     ap.add_argument(
-        '--store-label',
-        default='cb.starling_1',
-        help='Store label. Default: cb.starling_1')
+        '--provider',
+        default='numbersprotocol',
+        help='Manifest provider. Default: numbersprotocol')
     ap.add_argument(
         '--recorder',
         default='Starling Capture',
@@ -236,9 +242,9 @@ def parse_args():
         default='',
         help='Private key filepath.')
     ap.add_argument(
-        '-s', '--sig',
-        default='cms',
-        help='cms or endesive')
+        '-c', '--cert',
+        default='',
+        help='Public certificate filepath.')
     ap.add_argument(
         '-i', '--inject',
         default='',
@@ -256,17 +262,16 @@ def main():
     assertion_filepaths = args.assertion
     assertion_labels = [os.path.splitext(os.path.basename(a))[0]
                         for a in assertion_filepaths]
-    store_label = args.store_label
+    provider = args.provider
     recorder = args.recorder
     key_filepath = args.key
-    type_sig = args.sig
+    cert_filepath = args.cert
 
     if args.debug:
         print(args)
         print(assertion_filepaths)
         print(assertion_labels)
-        print(store_label)
-        print(type_sig)
+        print(provider)
 
     # read media content if injection is enabled
     with open(args.inject, 'rb') as f:
@@ -287,16 +292,14 @@ def main():
     # private key for signature
     if key_filepath != '':
         with open(key_filepath, 'rb') as f:
-            if type_sig == 'cms':
-                key = f.read()
-            elif type_sig == 'endesive':
-                # load_key_and_certificates second parameter is password to decrypt the data.
-                # Can be set to None of PKCS12 is not encrypted
-                # https://cryptography.io/en/latest/hazmat/primitives/asymmetric/serialization.html
-                key = pkcs12.load_key_and_certificates(f.read(), b'', backends.default_backend())
-            else:
-                raise Exception(
-                    'Unknown signature type {0}'.format(type_sig))
+            key = f.read()
+    else:
+        key = []
+
+    # public certificate for the public key
+    if cert_filepath != '':
+        with open(cert_filepath, 'rb') as f:
+            certificate = f.read()
     else:
         key = []
 
@@ -304,11 +307,11 @@ def main():
     starling = Starling(raw_bytes,
                         os.path.basename(args.inject),
                         raw_assertions,
-                        store_label,
+                        provider,
                         recorder,
                         key,
-                        type_sig)
-    starling_cai_bytes = starling.cai_injection()
+                        certificate)
+    starling_cai_bytes = starling.c2pa_injection()
 
     # save CAI-injected media
     if len(args.inject) > 0:

@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2021-11-29
+### Added
+- Add support for PS256 signature.
+
+## [2.0.0] - 2021-10-18
+### Changed
+- Change the implementation to be C2PA draft v0.7.0 compatible.
+
 ## [1.4.0] - 2021-09-02
 ### Changed
 - Update materials from CAI to C2PA.
@@ -35,7 +43,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Section about "changelog" vs "CHANGELOG".
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v1.4.0...HEAD
+[Unreleased]: https://github.com/numbersprotocol/starling-cai/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/numbersprotocol/starling-cai/compare/v2.0.0...v2.1.0
+[2.0.0]: https://github.com/numbersprotocol/starling-cai/compare/v1.4.0...v2.0.0
 [1.4.0]: https://github.com/numbersprotocol/starling-cai/compare/v1.3.3...v1.4.0
 [1.3.3]: https://github.com/numbersprotocol/starling-cai/compare/v1.3.2...v1.3.3
 [1.3.2]: https://github.com/numbersprotocol/starling-cai/compare/v1.3.1...v1.3.2
