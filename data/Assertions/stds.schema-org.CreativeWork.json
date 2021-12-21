@@ -6,6 +6,16 @@
             "@type": "Person",
             "credential": [],
             "name": "Bofu Chen"
+        },
+        {
+            "@id": "https://www.twitter.com/numbersprotocol",
+            "@type": "Organization",
+            "name": "Numbers Protocol"
+        },
+        {
+            "@id": "https://www.facebook.com/numbersprotocol/",
+            "@type": "Organization",
+            "name": "Numbers Protocol"
         }
     ]
 }
