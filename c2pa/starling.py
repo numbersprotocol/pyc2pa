@@ -133,7 +133,7 @@ class Starling(object):
         # generate acquisition assertion
         acquisition_assertion = {
             'dc:format': 'image/jpeg',
-            'dc:title': self.media_name,
+            'dc:title': self.media_name.replace('-cai.', '.'),
             'documentID': 'xmp:fakeid:39afb1d3-7f8c-44e6-b771-85e0d9adb377',
             'instanceID': 'xmp:fakeid:10c04858-d3fd-4e2c-8947-7f1e29d62fbe',
             'relationship': 'parentOf',
