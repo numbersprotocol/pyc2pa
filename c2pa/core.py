@@ -152,15 +152,23 @@ class C2paClaim(SuperBox):
         claim['claim_generator'] = recorder
         claim['signature'] = 'self#jumbf=c2pa/{}/c2pa.signature'.format(
             manifest_label)
-        claim['assertions'] = [{
-            'url': 'self#jumbf=c2pa/{manifest_label}/c2pa.assertions/{assertion_label}'
-            .format(
-                manifest_label=manifest_label,
-                assertion_label=assertion.description_box.db_label,
-            ),
-            'alg': 'sha256',
-            'hash': compute_hash(assertion.content_boxes[0].convert_bytes()[8:]),
-        } for assertion in assertion_store.content_boxes]
+        claim['assertions'] = []
+        for assertion in assertion_store.content_boxes:
+            t_box_type = assertion.content_boxes[0].convert_bytes()[4:8]
+            # for codestream box, the binary content is located in the second content box
+            data_bytes = assertion.content_boxes[1].convert_bytes()[8:]  \
+                if t_box_type == b'bfdb'  \
+                else assertion.content_boxes[0].convert_bytes()[8:]
+            assertion_entry = {
+                'url': 'self#jumbf=c2pa/{manifest_label}/c2pa.assertions/{assertion_label}'
+                .format(
+                    manifest_label=manifest_label,
+                    assertion_label=assertion.description_box.db_label,
+                ),
+                'alg': 'sha256',
+                'hash': compute_hash(data_bytes),
+            }
+            claim['assertions'].append(assertion_entry)
         claim['alg'] = 'sha256'
         return claim
 
