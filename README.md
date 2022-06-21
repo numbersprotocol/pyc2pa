@@ -4,11 +4,12 @@
 (photo source: C2PA)
 
 PyC2PA is Python implementation of [C2PA](https://c2pa.org/) (Coalition for Content Provenance and Authenticity) addressing the prevalence of misleading information online through the development of technical standards for certifying the source and history (or provenance) of media content.
+The latest tool can be checked in [C2PA tool (Command Line Interface)](https://github.com/contentauth/c2patool).
 
 ## Quick Trial
 
 1. Download the testing photo: [meimei-fried-chicken-cai-cai-cai.jpg](https://user-images.githubusercontent.com/17119193/145776913-cfe4de41-7f58-482e-b732-9aeb00c477bb.jpg)
-1. Go to the [CAI verification website](https://verify.contentauthenticity.org/inspect) and upload the photo.
+1. Go to the [CAI beta verification website](https://verify-beta.contentauthenticity.org/inspect) and upload the photo.
 1. You should see the C2PA information (3 injections) like this:
 
     ![cai-verify-example](https://user-images.githubusercontent.com/17119193/145777230-778ffff0-109d-470b-b0c3-6152bd63f8cb.png)
